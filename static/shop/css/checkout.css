@@ -1,0 +1,100 @@
+/* ============================================================
+   ChicShop — checkout.css
+   ============================================================ */
+
+.checkout-layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 1.5rem;
+    align-items: start
+}
+
+.checkout-form {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    padding: 1.5rem
+}
+
+.cf-section {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border)
+}
+
+.cf-section:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0
+}
+
+.cf-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px
+}
+
+.cf-num {
+    width: 26px;
+    height: 26px;
+    background: var(--rose);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0
+}
+
+.order-recap {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    padding: 1.25rem;
+    position: sticky;
+    top: 80px
+}
+
+.recap-item {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: center
+}
+
+.ri-img {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    background: var(--light);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Dancing Script', cursive;
+    color: var(--rose);
+    font-size: 11px
+}
+
+.ri-name {
+    font-size: 12px;
+    font-weight: 500;
+    flex: 1
+}
+
+.ri-price {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--rose)
+}
+
+@media(max-width:768px) {
+    .checkout-layout {
+        grid-template-columns: 1fr
+    }
+}

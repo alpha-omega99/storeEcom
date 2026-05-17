@@ -1,0 +1,191 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}ChicShop — Tapis de Prière Personnalisé | Abidjan{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'shop/css/home.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<!-- ===== HERO ===== -->
+<section class="hero-banner" aria-label="Bannière principale">
+  <div class="hero-text">
+    <div class="hero-eyebrow">✦ Artisanat · Personnalisé main · Abidjan</div>
+    <h1 class="hero-h1">Le tapis qui<br>porte <em>son nom.</em></h1>
+    <p class="hero-sub">
+      Offrez un moment de paix unique avec nos tapis personnalisés à la main.
+      Un cadeau qui marque les cœurs pour l'Aïd, le mariage ou le Hajj.
+    </p>
+    <div class="hero-cta">
+      <a href="{% url 'shop:catalog' %}" class="btn-gold">✨ Créer mon tapis unique</a>
+      <a href="{% url 'shop:catalog' %}" class="btn-ghost">Voir la galerie</a>
+    </div>
+  </div>
+  <div class="hero-visual" aria-hidden="true">
+    <div class="hero-rug-preview">
+      <div>
+        <div class="hero-rug-text" id="heroName">Fatima</div>
+        <div class="hero-rug-sub">Broderie dorée</div>
+      </div>
+      <div class="hero-badge-float">🌸 NOUVEAU</div>
+      <div class="hero-price-float">
+        <span>À partir de</span>
+        <strong>8 990 F CFA</strong>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FLASH SALE ===== -->
+<section class="flash-bar" aria-label="Vente Flash">
+  <span class="flash-title">⚡ Vente Flash</span>
+  <div class="flash-timer" aria-live="polite" aria-label="Temps restant">
+    <div class="ftblock" id="fh">05</div>
+    <span class="flash-sep" aria-hidden="true">:</span>
+    <div class="ftblock" id="fm">47</div>
+    <span class="flash-sep" aria-hidden="true">:</span>
+    <div class="ftblock" id="fs">23</div>
+  </div>
+  <div class="flash-scroll">
+    {% for product in flash_products %}
+    <a href="{% url 'shop:product_detail' product.slug %}" class="fcard">
+      <div>
+        <div class="fcard-name">{{ product.name }}</div>
+        <div class="fcard-price">
+          {{ product.price|floatformat:0 }} F CFA
+          {% if product.discount_percent %}
+            <span class="fcard-discount">-{{ product.discount_percent }}%</span>
+          {% endif %}
+        </div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- ===== CATÉGORIES ===== -->
+<section class="section-block" aria-labelledby="cats-title">
+  <div class="sec-head">
+    <h2 class="sec-title" id="cats-title">Nos <span>Univers</span></h2>
+    <a href="{% url 'shop:catalog' %}" class="sec-link">Voir tout →</a>
+  </div>
+  <div class="cats-grid">
+    {% for cat in categories %}
+    <a class="ccat" href="{% url 'shop:catalog_category' cat.slug %}">
+      <div class="ccat-icon" aria-hidden="true">{{ cat.icon }}</div>
+      <div class="ccat-name">{{ cat.name }}</div>
+      <div class="ccat-count">{{ cat.product_count }} produit{{ cat.product_count|pluralize }}</div>
+    </a>
+    {% endfor %}
+    <a class="ccat" href="{% url 'shop:promotions' %}">
+      <div class="ccat-icon" aria-hidden="true">🔥</div>
+      <div class="ccat-name">Promotions</div>
+      <div class="ccat-count">-15% à -40%</div>
+    </a>
+  </div>
+</section>
+
+<!-- ===== PRODUITS POPULAIRES ===== -->
+<section class="section-block" aria-labelledby="pop-title">
+  <div class="sec-head">
+    <h2 class="sec-title" id="pop-title">Les Plus <span>Populaires</span></h2>
+    <a href="{% url 'shop:catalog' %}" class="sec-link">Voir tout →</a>
+  </div>
+  <div class="prod-grid">
+    {% for product in featured_products %}
+      {% include 'shop/partials/product_card.html' %}
+    {% empty %}
+      <p class="empty-state">Aucun produit disponible pour le moment.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- ===== BANNERS PROMO ===== -->
+<section class="banner-grid" aria-label="Promotions et collections">
+  <a class="banner-card bc1" href="{% url 'shop:catalog_category' 'mariage' %}">
+    <div class="banner-text">
+      <h3>Collection Hajj</h3>
+      <p>Tapis & accessoires pour votre voyage</p>
+      <span class="banner-cta">Découvrir</span>
+    </div>
+  </a>
+  <a class="banner-card bc2" href="{% url 'shop:catalog_category' 'pack' %}">
+    <div class="banner-text">
+      <h3>Cadeaux Aïd</h3>
+      <p>Faites briller ses yeux cette saison</p>
+      <span class="banner-cta">Choisir</span>
+    </div>
+  </a>
+  <a class="banner-card bc3" href="{% url 'shop:catalog' %}">
+    <div class="banner-text">
+      <h3>Broderie personnalisée</h3>
+      <p>Votre prénom, en calligraphie dorée</p>
+      <span class="banner-cta">Créer</span>
+    </div>
+  </a>
+  <a class="banner-card bc4" href="{% url 'shop:catalog_category' 'mariage' %}">
+    <div class="banner-text">
+      <h3>Packs mariage</h3>
+      <p>Le luxe ultime pour marquer l'instant</p>
+      <span class="banner-cta">Explorer</span>
+    </div>
+  </a>
+</section>
+
+<!-- ===== TÉMOIGNAGES ===== -->
+<section class="section-block" aria-labelledby="testi-title">
+  <div class="sec-head">
+    <h2 class="sec-title" id="testi-title">La Preuve <span>De nos Clients</span></h2>
+    <span class="sec-link">2 000+ avis ★★★★★</span>
+  </div>
+  <div class="testi-grid">
+    {% for review in testimonials %}
+    <article class="tcard2">
+      <div class="tc2-head">
+        <div class="tc2-avatar"
+             style="background:{{ review.avatar_bg }};color:{{ review.avatar_color }}"
+             aria-hidden="true">{{ review.initial }}</div>
+        <div>
+          <div class="tc2-name">{{ review.name }}</div>
+          <div class="tc2-loc">{{ review.city }}</div>
+        </div>
+      </div>
+      <div class="tc2-stars" aria-label="{{ review.rating }} étoiles">
+        {% for i in "12345" %}
+          {% if forloop.counter <= review.rating %}★{% endif %}
+        {% endfor %}
+      </div>
+      <blockquote class="tc2-text">{{ review.comment }}</blockquote>
+      <div class="tc2-time">{{ review.time_ago }} · Lu ✓✓</div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- ===== STATS ===== -->
+<section class="stats-grid" aria-label="Statistiques ChicShop">
+  <div class="stat-card">
+    <div class="stat-number">2 000+</div>
+    <div class="stat-label">Familles satisfaites</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number" id="salesCpt">{{ today_sales|default:14 }}</div>
+    <div class="stat-label">Personnalisé aujourd'hui</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number">4.9★</div>
+    <div class="stat-label">Note moyenne</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number">5 min</div>
+    <div class="stat-label">Réponse WhatsApp</div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'shop/js/home.js' %}"></script>
+{% endblock %}

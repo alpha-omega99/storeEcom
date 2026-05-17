@@ -1,0 +1,43 @@
+{% load static %}
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+
+    <a class="logo" href="{% url 'shop:home' %}">CHIC<span>SHOP</span></a>
+
+    <!-- SEARCH -->
+    <form class="search-bar" action="{% url 'shop:search' %}" method="GET">
+      <input
+        type="text"
+        name="q"
+        id="searchInput"
+        placeholder="Rechercher : tapis, chapelet, Coran..."
+        value="{{ request.GET.q|default:'' }}"
+        autocomplete="off"
+      >
+      <button type="submit">🔍</button>
+    </form>
+
+    <!-- ACTIONS -->
+    <div class="header-actions">
+      <a class="haction {% if request.resolver_match.url_name == 'wishlist' %}haction--active{% endif %}"
+         href="{% url 'shop:wishlist' %}">
+        <span class="haction-icon">♡</span>
+        <span>Favoris</span>
+      </a>
+
+      <a class="haction {% if request.resolver_match.url_name == 'account' %}haction--active{% endif %}"
+         href="{% if request.user.is_authenticated %}{% url 'shop:account' %}{% else %}{% url 'accounts:login' %}?next={% url 'shop:account' %}{% endif %}">
+        <span class="haction-icon">👤</span>
+        <span>{% if request.user.is_authenticated %}{{ request.user.first_name }}{% else %}Compte{% endif %}</span>
+      </a>
+
+      <a class="haction" href="{% url 'shop:cart' %}">
+        <span class="haction-icon">🛒</span>
+        <span>Panier</span>
+        <span class="cart-badge" id="cartBadge">{{ cart_count|default:0 }}</span>
+      </a>
+    </div>
+
+  </div>
+</header>

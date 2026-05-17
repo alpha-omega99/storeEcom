@@ -1,0 +1,21 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+{% block title %}Promotions Spéciales — ChicShop{% endblock %}
+{% block content %}
+<div class="promo-hero">
+  <div style="font-size:12px;letter-spacing:3px;color:rgba(255,255,255,0.7);margin-bottom:8px">OFFRES LIMITÉES</div>
+  <h1>Promotions <em>Spéciales</em></h1>
+  <p>Jusqu'à -29% sur une sélection · Offre valable jusqu'à épuisement des stocks</p>
+</div>
+<div class="prod-grid">
+  {% for product in promo_products %}
+    {% include 'shop/partials/product_card.html' %}
+  {% empty %}
+    <div class="empty-state-full">
+      <div class="empty-icon">🔥</div>
+      <h3>Aucune promotion en ce moment</h3>
+      <p>Revenez bientôt pour découvrir nos offres !</p>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

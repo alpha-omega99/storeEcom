@@ -1,0 +1,29 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+{% block title %}Commande confirmée 🌸 — ChicShop{% endblock %}
+{% block content %}
+<div class="success-page">
+  <div class="success-icon">🌸</div>
+  <h1>Commande confirmée !</h1>
+  <p class="success-sub">
+    Merci pour votre confiance. Aminata vous contactera dans les <strong>5 minutes</strong>
+    sur WhatsApp pour confirmer votre commande et la personnalisation. 💬
+  </p>
+  {% if order %}
+  <div class="success-ref">Référence : <strong>#{{ order.reference }}</strong></div>
+  {% endif %}
+  <div class="success-steps">
+    <div class="success-steps-title">Prochaines étapes</div>
+    <div class="success-step">1. ✅ Confirmation WhatsApp par Aminata</div>
+    <div class="success-step">2. 🎨 Personnalisation sous 24 Heures</div>
+    <div class="success-step">3. 📦 Emballage cadeau de luxe</div>
+    <div class="success-step">4. 🚚 Livraison à votre porte</div>
+  </div>
+  <div class="success-actions">
+    <a href="{% url 'shop:home' %}" class="btn-gold">🏠 Retour à l'accueil</a>
+    <a href="https://wa.me/{{ whatsapp_number|default:'22507000000' }}"
+       target="_blank" rel="noopener noreferrer"
+       class="btn-whatsapp">💬 Contacter Aminata</a>
+  </div>
+</div>
+{% endblock %}

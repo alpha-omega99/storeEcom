@@ -1,0 +1,69 @@
+{% load static %}
+<footer>
+  <div class="footer-inner">
+    <div class="footer-grid">
+
+      <!-- Brand -->
+      <div>
+        <div class="f-logo">CHIC<span>SHOP</span></div>
+        <div class="f-desc">
+          Votre boutique spécialisée dans les articles spirituels brodés à la main.
+          Chaque produit est pensé avec soin, amour et élégance pour marquer les cœurs.
+        </div>
+        <div class="f-pays">
+          <div class="f-pay">Orange Money</div>
+          <div class="f-pay">Wave</div>
+          <div class="f-pay">Cash livraison</div>
+        </div>
+        <div class="f-wa">
+          💬 Une question ? <strong>Aminata</strong> répond en 5 min sur WhatsApp
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div>
+        <div class="f-col-title">Navigation</div>
+        <a class="f-link" href="{% url 'shop:home' %}">Accueil</a>
+        <a class="f-link" href="{% url 'shop:catalog' %}">Notre Collection</a>
+        <a class="f-link" href="{% url 'shop:promotions' %}">Promotions</a>
+        <a class="f-link" href="#">L'Atelier</a>
+        <a class="f-link" href="#">Contact</a>
+      </div>
+
+      <!-- Catégories -->
+      <div>
+        <div class="f-col-title">Catégories</div>
+        <a class="f-link" href="{% url 'shop:catalog_category' 'tapis' %}">Tapis de prière</a>
+        <a class="f-link" href="{% url 'shop:catalog_category' 'pack' %}">Packs cadeaux</a>
+        <a class="f-link" href="{% url 'shop:catalog_category' 'mariage' %}">Mariage & Hajj</a>
+        <a class="f-link" href="{% url 'shop:catalog_category' 'chapelet' %}">Chapelets</a>
+        <a class="f-link" href="{% url 'shop:catalog_category' 'coran' %}">Saints Corans</a>
+      </div>
+
+      <!-- Infos -->
+      <div>
+        <div class="f-col-title">Informations</div>
+        <a class="f-link" href="#">Livraison & retours</a>
+        <a class="f-link" href="#">Confidentialité</a>
+        <a class="f-link" href="#">Conditions générales</a>
+        <a class="f-link" href="#">Garantie Sourire</a>
+        <a class="f-link" href="{% url 'shop:account' %}">Mon compte</a>
+      </div>
+
+    </div>
+
+    <div class="f-bottom">
+      <div class="f-copy">
+        © 2025 ChicShop — Tous droits réservés 🌸 ·
+        Garantie Sourire : Personnalisation refaite gratuitement si elle ne vous plaît pas.
+      </div>
+      <div class="f-social">
+        <a class="f-soc" href="#" aria-label="Facebook">📘</a>
+        <a class="f-soc" href="#" aria-label="Instagram">📸</a>
+        <a class="f-soc" href="#" aria-label="Twitter">🐦</a>
+        <a class="f-soc" href="#" aria-label="YouTube">▶️</a>
+      </div>
+    </div>
+
+  </div>
+</footer>

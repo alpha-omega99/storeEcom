@@ -1,0 +1,67 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}Mon Panier — ChicShop{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'shop/css/cart.css' %}">{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Mon <span>Panier</span></h1>
+
+{% if cart_items %}
+<div class="cart-layout">
+
+  <div class="cart-items">
+    <div class="cart-header">🛒 Mon panier ({{ cart_items|length }} article{{ cart_items|length|pluralize }})</div>
+    {% for item in cart_items %}
+    <div class="cart-item" id="ci-{{ item.product.id }}">
+      <div class="ci-img">
+        {% if item.product.image %}<img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+        {% else %}{{ item.product.emoji }} {{ item.product.name|truncatewords:1 }}{% endif %}
+      </div>
+      <div class="ci-details">
+        <div class="ci-name">{{ item.product.name }}</div>
+        <div class="ci-opts">{% if item.size %}{{ item.size }}{% endif %}{% if item.embroidery_name %} · Broderie : {{ item.embroidery_name }}{% endif %}</div>
+        <div class="ci-qty">
+          <button onclick="updateCartQty({{ item.product.id }}, -1)" type="button">−</button>
+          <span id="qty-{{ item.product.id }}">{{ item.quantity }}</span>
+          <button onclick="updateCartQty({{ item.product.id }}, 1)" type="button">+</button>
+        </div>
+        <button class="ci-remove" onclick="removeFromCart({{ item.product.id }})" type="button">🗑 Supprimer</button>
+      </div>
+      <div class="ci-price" id="price-{{ item.product.id }}">{{ item.line_total|floatformat:0 }} F</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="cart-summary">
+    <div class="cs-title">Résumé de la commande</div>
+    <div class="cs-row"><span>Sous-total</span><span id="cartSubtotal">{{ subtotal|floatformat:0 }} F CFA</span></div>
+    <div class="cs-row"><span>Livraison</span><span style="color:#2d6e2d">Gratuite</span></div>
+    <div class="cs-row"><span>Emballage cadeau</span><span style="color:#2d6e2d">Offert</span></div>
+    <div class="cs-row total"><span>Total</span><span id="cartTotal">{{ subtotal|floatformat:0 }} F CFA</span></div>
+    <div class="promo-input">
+      <input type="text" id="promoCode" placeholder="Code promo" maxlength="30">
+      <button type="button" onclick="applyPromoCode()">Appliquer</button>
+    </div>
+    <div id="promoMsg" class="promo-msg" aria-live="polite"></div>
+    <a href="{% url 'shop:checkout' %}" class="checkout-btn">✨ Commander maintenant</a>
+    <div class="pay-icons">
+      <div class="pay-icon">Orange Money</div>
+      <div class="pay-icon">Wave</div>
+      <div class="pay-icon">Cash</div>
+    </div>
+    <p class="cart-trust">✅ Garantie Sourire · 🚚 Livraison gratuite · 🎁 Emballage offert</p>
+  </div>
+</div>
+
+{% else %}
+<div class="cart-empty">
+  <div class="icon">🛒</div>
+  <h3>Votre panier est vide</h3>
+  <p>Découvrez notre collection et ajoutez vos articles préférés !</p>
+  <a href="{% url 'shop:catalog' %}" class="btn-gold" style="display:inline-block;margin-top:1.5rem">Découvrir la collection</a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}<script src="{% static 'shop/js/cart_page.js' %}"></script>{% endblock %}

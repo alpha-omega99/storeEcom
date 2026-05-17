@@ -1,0 +1,55 @@
+{% load static %}
+<!-- PRODUCT CARD — partial réutilisable dans toutes les pages -->
+<article class="pcard" data-product-id="{{ product.id }}">
+
+  <!-- Image -->
+  <a href="{% url 'shop:product_detail' product.slug %}" class="pcard-link" aria-label="{{ product.name }}">
+    {% if product.image %}
+      <img class="pcard-img" src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy">
+    {% else %}
+      <div class="pcard-img-placeholder" aria-hidden="true">
+        {{ product.emoji }} {{ product.name|truncatewords:1 }}
+      </div>
+    {% endif %}
+  </a>
+
+  <!-- Badges -->
+  {% if product.badge %}
+  <div class="pcard-badges">
+    <span class="pbadge-{{ product.badge|lower }}">{{ product.badge }}</span>
+  </div>
+  {% endif %}
+
+  <!-- Wishlist -->
+  <button class="pwish {% if product.id in wishlist_ids %}active{% endif %}"
+          onclick="toggleWish({{ product.id }}, this)"
+          aria-label="Ajouter aux favoris"
+          title="Favoris">♡</button>
+
+  <!-- Infos -->
+  <div class="pcard-body">
+    <div class="pcard-cat">{{ product.category.name }}</div>
+    <a href="{% url 'shop:product_detail' product.slug %}" class="pcard-name-link">
+      <div class="pcard-name">{{ product.name }}</div>
+    </a>
+    <div class="pcard-stars" aria-label="{{ product.average_rating }} étoiles sur 5">
+      {% for i in "12345" %}
+        {% if forloop.counter <= product.average_rating %}★{% else %}☆{% endif %}
+      {% endfor %}
+      <span>{{ product.review_count }} avis</span>
+    </div>
+    <div class="pcard-price">
+      <strong>{{ product.price|floatformat:0 }} F CFA</strong>
+      {% if product.original_price %}
+        <s>{{ product.original_price|floatformat:0 }} F</s>
+        <span class="disc">-{{ product.discount_percent }}%</span>
+      {% endif %}
+    </div>
+    <button class="pcard-btn"
+            onclick="addToCart({{ product.id }}, '{{ product.name|escapejs }}', {{ product.price }}, '{{ product.emoji }}')"
+            aria-label="Ajouter {{ product.name }} au panier">
+      🛒 Ajouter au panier
+    </button>
+  </div>
+
+</article>

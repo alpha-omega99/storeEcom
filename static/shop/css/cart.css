@@ -1,0 +1,246 @@
+/* ============================================================
+   ChicShop — cart.css
+   ============================================================ */
+
+.cart-layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 1.5rem;
+    align-items: start
+}
+
+.cart-items {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    overflow: hidden
+}
+
+.cart-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    font-weight: 600
+}
+
+.cart-item {
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    gap: 12px;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+}
+
+.ci-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 10px;
+    object-fit: cover;
+    background: var(--light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Dancing Script', cursive;
+    color: var(--rose);
+    font-size: 14px;
+    overflow: hidden;
+}
+
+.ci-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px
+}
+
+.ci-details {}
+
+.ci-name {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 4px
+}
+
+.ci-opts {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 6px
+}
+
+.ci-qty {
+    display: flex;
+    align-items: center;
+    gap: 8px
+}
+
+.ci-qty button {
+    width: 24px;
+    height: 24px;
+    border: 1px solid var(--border);
+    background: #fff;
+    border-radius: 50%;
+    font-size: 12px;
+    color: var(--rose);
+    font-weight: 600;
+}
+
+.ci-qty span {
+    font-size: 13px;
+    font-weight: 500
+}
+
+.ci-price {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--rose);
+    white-space: nowrap
+}
+
+.ci-remove {
+    font-size: 11px;
+    color: #bbb;
+    cursor: pointer;
+    margin-top: 4px;
+    display: block;
+    background: none;
+    border: none;
+    font-family: var(--f);
+    padding: 0
+}
+
+.ci-remove:hover {
+    color: #ff4444
+}
+
+.cart-summary {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    padding: 1.25rem;
+    position: sticky;
+    top: 80px
+}
+
+.cs-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border)
+}
+
+.cs-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 8px;
+    color: #555
+}
+
+.cs-row.total {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text);
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+    margin-top: 4px
+}
+
+.promo-input {
+    display: flex;
+    gap: 8px;
+    margin: 12px 0
+}
+
+.promo-input input {
+    flex: 1;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-family: var(--f);
+    outline: none
+}
+
+.promo-input input:focus {
+    border-color: var(--rose)
+}
+
+.promo-input button {
+    background: var(--rose);
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: var(--f)
+}
+
+.promo-msg {
+    font-size: 12px;
+    padding: 4px 0;
+    min-height: 18px
+}
+
+.promo-msg.ok {
+    color: #2d6e2d
+}
+
+.promo-msg.err {
+    color: #ff4444
+}
+
+.checkout-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--rose), #e05580);
+    color: #fff;
+    border: none;
+    padding: 15px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: var(--f);
+    margin-top: 12px;
+    box-shadow: 0 4px 20px rgba(192, 67, 110, .35);
+    transition: all .2s;
+    display: block;
+    text-align: center;
+    cursor: pointer;
+}
+
+.checkout-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(192, 67, 110, .4)
+}
+
+.pay-icons {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    justify-content: center;
+    flex-wrap: wrap
+}
+
+.pay-icon {
+    background: var(--light);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 10px;
+    color: var(--rose);
+    font-weight: 600
+}
+
+.cart-trust {
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center
+}
+
+@media(max-width:768px) {
+    .cart-layout {
+        grid-template-columns: 1fr
+    }
+}

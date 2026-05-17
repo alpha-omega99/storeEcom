@@ -1,0 +1,30 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+{% block title %}Recherche "{{ search_query }}" — ChicShop{% endblock %}
+{% block content %}
+<nav class="breadcrumb"><a href="{% url 'shop:home' %}">Accueil</a> › Recherche</nav>
+<h1 class="page-title">
+  {% if search_query %}
+    Résultats pour <span>"{{ search_query }}"</span>
+  {% else %}
+    <span>Recherche</span>
+  {% endif %}
+</h1>
+{% if search_query %}
+  <p style="font-size:13px;color:var(--muted);margin-bottom:1.5rem">
+    {{ products.count }} résultat{{ products.count|pluralize }} trouvé{{ products.count|pluralize }}
+  </p>
+{% endif %}
+<div class="prod-grid">
+  {% for product in products %}
+    {% include 'shop/partials/product_card.html' %}
+  {% empty %}
+    <div class="empty-state-full">
+      <div class="empty-icon">🔍</div>
+      <h3>Aucun résultat pour "{{ search_query }}"</h3>
+      <p>Essayez un autre terme ou parcourez notre catalogue.</p>
+      <a href="{% url 'shop:catalog' %}" class="btn-gold" style="display:inline-block;margin-top:1rem">Voir tout le catalogue</a>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}
