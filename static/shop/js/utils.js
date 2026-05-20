@@ -62,10 +62,8 @@ function formatPrice(amount) {
 /* ===== DEBOUNCE ===== */
 function debounce(fn, delay = 300) {
     let t;
-    return (...args) => {
-        clearTimeout(t);
-        t = setTimeout(() => fn(...args), delay);
-    };
+    return (...args) => { clearTimeout(t);
+        t = setTimeout(() => fn(...args), delay); };
 }
 
 /* ===== BADGE PANIER ===== */
@@ -84,13 +82,8 @@ const WishlistStore = {
     get() { try { return JSON.parse(localStorage.getItem(this.key)) || []; } catch { return []; } },
     set(ids) { localStorage.setItem(this.key, JSON.stringify(ids)); },
     has(id) { return this.get().includes(Number(id)); },
-    add(id) {
-        const l = this.get();
-        if (!l.includes(Number(id))) {
-            l.push(Number(id));
-            this.set(l);
-        }
-    },
+    add(id) { const l = this.get(); if (!l.includes(Number(id))) { l.push(Number(id));
+            this.set(l); } },
     remove(id) { this.set(this.get().filter(x => x !== Number(id))); },
     toggle(id) { this.has(id) ? this.remove(id) : this.add(id); return this.has(id); },
 };

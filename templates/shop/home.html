@@ -87,6 +87,85 @@
   </div>
 </section>
 
+{# ===== SECTION PACKS ===== #}
+<section class="section-block packs-section" aria-labelledby="packs-title">
+  <div class="sec-head">
+    <h2 class="sec-title" id="packs-title">Nos <span>Univers Spirituels</span></h2>
+  </div>
+  <p class="packs-subtitle">Chaque pack est pensé comme une expérience de cadeau — pas un simple produit</p>
+
+  <div class="packs-grid">
+
+    {# --- Pack 1 --- #}
+    <article class="pack-card">
+      <div class="pack-icon">🕌</div>
+      <h3 class="pack-name">Le Duo Essentiel</h3>
+      <p class="pack-tagline">Pour débuter sa quête spirituelle</p>
+      <div class="pack-price-block">
+        <span class="pack-price">8 990 <small>F CFA</small></span>
+        <s class="pack-old">11 200 F</s>
+        <span class="pack-disc">-20%</span>
+      </div>
+      <ul class="pack-items">
+        <li>Tapis brodé (Nom &amp; Prénom)</li>
+        <li>Chapelet (Tasbih)</li>
+        <li>Emballage cadeau soigné</li>
+      </ul>
+      <a href="{% url 'shop:product_detail' 'le-duo-essentiel' %}" class="pack-btn">Choisir ce pack</a>
+    </article>
+
+    {# --- Pack 2 FEATURED --- #}
+    <article class="pack-card pack-card--featured">
+      <div class="pack-badge">Le choix des familles ✦</div>
+      <div class="pack-icon">✨</div>
+      <h3 class="pack-name">L'Écrin de Sérénité</h3>
+      <p class="pack-tagline">Le cadeau le plus offert pour marquer les cœurs</p>
+      <div class="pack-price-block">
+        <span class="pack-price pack-price--featured">11 990 <small>F CFA</small></span>
+        <s class="pack-old">14 100 F</s>
+        <span class="pack-disc">-15%</span>
+      </div>
+      <ul class="pack-items">
+        <li>Tapis brodé (Nom &amp; Prénom)</li>
+        <li>Message personnalisé brodé</li>
+        <li>Saint Coran arabe/français</li>
+        <li>Chapelet (Tasbih)</li>
+        <li>Zikromètre</li>
+        <li>Emballage cadeau soigné</li>
+      </ul>
+      <a href="{% url 'shop:product_detail' 'lecrin-de-serenite' %}" class="pack-btn pack-btn--featured">Choisir — Le plus populaire</a>
+    </article>
+
+    {# --- Pack 3 --- #}
+    <article class="pack-card">
+      <div class="pack-icon">👑</div>
+      <h3 class="pack-name">L'Héritage Royal</h3>
+      <p class="pack-tagline">Le luxe ultime — Mariage, Hajj, grandes occasions</p>
+      <div class="pack-price-block">
+        <span class="pack-price">19 850 <small>F CFA</small></span>
+        <s class="pack-old">22 000 F</s>
+        <span class="pack-disc">-10%</span>
+      </div>
+      <ul class="pack-items">
+        <li>Tapis brodé (Nom &amp; Prénom)</li>
+        <li>Message personnalisé brodé</li>
+        <li>Saint Coran arabe/français</li>
+        <li>Chapelet + Zikromètre</li>
+        <li>Boubou marocain (H ou F)</li>
+        <li>Parfum de luxe</li>
+        <li>Emballage cadeau soigné</li>
+      </ul>
+      <a href="{% url 'shop:product_detail' 'lheritage-royal' %}" class="pack-btn">Choisir ce pack</a>
+    </article>
+
+  </div>
+
+  <p class="packs-note">
+    🎁 Emballage cadeau offert · 🚚 Livraison rapide Abidjan ·
+    <strong>Code CHICSHOP15 pour -15%</strong>
+  </p>
+</section>
+
 <!-- ===== PRODUITS POPULAIRES ===== -->
 <section class="section-block" aria-labelledby="pop-title">
   <div class="sec-head">

@@ -5,13 +5,12 @@ ChicShop — URLs du shop (frontend)
     path('', include('apps.shop.urls', namespace='shop')),
     path('shop/', include('apps.shop.urls', namespace='shop')),  # ou prefix voulu
 """
-from django.urls import path, include
+from django.urls import path
 from . import views
 
 app_name = 'shop'
 
 urlpatterns = [
-    path('', include('apps.shop.urls', namespace='shop')),
     
     # ===== PAGES PRINCIPALES =====
     path('',                    views.home,           name='home'),

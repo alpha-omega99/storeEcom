@@ -48,7 +48,6 @@ class Product(models.Model):
         Category, on_delete=models.PROTECT, related_name='products'
     )
     description = models.TextField()
-    short_description = models.CharField(max_length=300, blank=True)
 
     # Tarification
     price = models.DecimalField(
@@ -84,11 +83,13 @@ class Product(models.Model):
     )
 
     # Tailles disponibles
-    available_sizes = models.JSONField(
-        default=list, blank=True,
-        help_text="Ex: ['60×90 cm', '70×110 cm']"
+    personne=(())
+    # Tu peux conserver available_sizes pour plus tard ou utiliser directement ce format :
+    target_options = models.JSONField(
+        default=list, 
+        blank=True, 
+        help_text="Ex: ['Maman 🌸', 'Mon Époux 🌙', 'Un Enfant ✨', 'Pour moi']"
     )
-
     # SEO & Stats
     views_count = models.PositiveIntegerField(default=0)
     sales_count = models.PositiveIntegerField(default=0)

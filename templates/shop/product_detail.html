@@ -84,23 +84,33 @@
       </div>
     </div>
 
+
     <!-- Taille -->
-    {% if product.available_sizes %}
-    <div class="pd-options">
-      <div class="od-label">Taille du tapis</div>
-      <div class="size-chips">
-        {% for size in product.available_sizes %}
-          <button class="schip {% if forloop.counter == 2 %}sel{% endif %}"
-                  onclick="selectSize(this)" data-size="{{ size }}" type="button">{{ size }}</button>
-        {% endfor %}
-      </div>
-    </div>
-    {% endif %}
+
+        {% comment %} <div class="product-custom-section">
+        <span class="section-subtitle">Pour qui est ce cadeau ?</span>
+        
+        <div class="target-badge-grid">
+            {% for target in product.target_options %}
+                <label class="target-badge-label">
+                    <input type="radio" name="gift_target" value="{{ target }}" {% if forloop.first %}checked{% endif %}>
+                    <span class="target-badge-btn">{{ target }}</span>
+                </label>
+            {% empty %}
+                <label class="target-badge-label">
+                    <input type="radio" name="gift_target" value="Pour moi" checked>
+                    <span class="target-badge-btn">Pour moi</span>
+                </label>
+            {% endfor %}
+        </div>
+    </div> {% endcomment %}
+    {% comment %} 
+     {% endcomment %}
 
     <!-- Broderie -->
     {% if product.allows_embroidery %}
     <div class="name-input-block">
-      <label for="embroideryInput">Prénom à broder — tapez et voyez la magie ✨</label>
+      <label for="embroideryInput">Prénom à personnalisé — tapez et voyez la magie ✨</label>
       <input type="text"
              id="embroideryInput"
              placeholder="Ex : Fatima, Ibrahim, Maïssa..."
@@ -132,6 +142,14 @@
               onclick="toggleWish({{ product.id }}, this)"
               aria-label="Ajouter aux favoris"
               type="button">♡</button>
+    </div>
+    <div class="pd-actions">
+      <button class="btn-addcart buy-now"
+              onclick="buyNow({{ product.id }}, '{{ product.name|escapejs }}', {{ product.price }}, '{{ product.emoji }}')"
+              {% if not product.is_available %}disabled{% endif %}
+              type="button">
+        💸 Acheter maintenant
+      </button>
     </div>
 
     <!-- Garanties -->

@@ -14,7 +14,7 @@ admin.site.index_title = "Panneau de contrôle"
 
 urlpatterns = [
     # Admin Django — URL non-standard pour éviter le scan automatique
-    path('chicshop-admin/', admin.site.urls),
+    path('admin/', admin.site.urls),
     path('', include('apps.shop.urls', namespace='shop')),
     path('auth/', include('apps.accounts.urls', namespace='accounts')),
     path('products/', include('apps.products.urls', namespace='products')),
