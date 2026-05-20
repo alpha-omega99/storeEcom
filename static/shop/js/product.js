@@ -2,6 +2,29 @@
 
 let _pdQty = 1;
 
+async function apiPost(url, data) {
+    // Va chercher le token CSRF stocké par Django dans les cookies du navigateur
+    const csrfToken = document.cookie.split('; ')
+        .find(row => row.startsWith('csrftoken=')) ?
+        .split('=')[1];
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken // Insère le token dans les headers de la requête
+        },
+        body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Erreur (${response.status})`);
+    }
+
+    return await response.json();
+}
+
 /* ===== ONGLETS ===== */
 function switchTab(el, contentId) {
     const infoBlock = el.closest('.pd-info');
@@ -14,12 +37,6 @@ function switchTab(el, contentId) {
     el.setAttribute('aria-selected', 'true');
     const content = document.getElementById(contentId);
     if (content) content.classList.add('active');
-}
-
-/* ===== SÉLECTION TAILLE ===== */
-function selectSize(el) {
-    el.closest('.size-chips').querySelectorAll('.schip').forEach(s => s.classList.remove('sel'));
-    el.classList.add('sel');
 }
 
 /* ===== SÉLECTION MINIATURE ===== */
@@ -41,6 +58,7 @@ function changeQty(delta) {
 
 /* ===== APERÇU BRODERIE ===== */
 function updateEmbroideryPreview(value) {
+    // Sélectionne l'id présent selon si c'est le placeholder ou l'aperçu sous l'input
     const preview = document.getElementById('pdLiveName') || document.getElementById('pdNamePreview');
     if (!preview) return;
     const text = value.trim() || 'Votre prénom';
@@ -51,12 +69,14 @@ function updateEmbroideryPreview(value) {
 
 /* ===== AJOUTER AU PANIER DEPUIS DÉTAIL ===== */
 async function addToCartFromDetail(productId, name, price, emoji, btn) {
-    // Correction de l'espace dans le optional chaining (?.)
+    // CORRECTION SYNTAXE : Pas d'espaces pour le ?.
     const embroidery = document.getElementById('embroideryInput') ? .value ? .trim() || '';
-    const sizeEl = document.querySelector('.schip.sel');
-    const size = sizeEl ? sizeEl.dataset.size || sizeEl.textContent.trim() : '';
 
-    // Garder en mémoire le texte de départ du bouton ciblé
+    // Ton HTML n'a pas de section taille active, mais on laisse la sécurité au cas où
+    const sizeEl = document.querySelector('.schip.sel');
+    const size = sizeEl ? (sizeEl.dataset.size || sizeEl.textContent.trim()) : '';
+
+    // Détecte dynamiquement le texte initial du bouton cliqué
     const originalText = btn ? btn.textContent : '🛒 Ajouter au panier';
 
     if (btn) {
@@ -65,6 +85,7 @@ async function addToCartFromDetail(productId, name, price, emoji, btn) {
     }
 
     try {
+        // Envoi des données vers ton backend Django
         const data = await apiPost('/shop/cart/add/', {
             product_id: productId,
             quantity: _pdQty,
@@ -72,8 +93,13 @@ async function addToCartFromDetail(productId, name, price, emoji, btn) {
             selected_size: size,
         });
 
-        updateCartBadge(data.cart_count);
-        showToast(`✅ ${name} ajouté au panier !`);
+        // Mise à jour de l'interface (Vérifie bien que ces fonctions globales existent !)
+        if (typeof updateCartBadge === 'function') updateCartBadge(data.cart_count);
+        if (typeof showToast === 'function') {
+            showToast(`✅ ${name} ajouté au panier !`);
+        } else {
+            alert(`✅ ${name} ajouté au panier !`);
+        }
 
         if (btn) {
             btn.style.background = '#28a745';
@@ -89,8 +115,14 @@ async function addToCartFromDetail(productId, name, price, emoji, btn) {
                 btn.disabled = false;
             }
         }, 2000);
+
     } catch (err) {
-        showToast(`❌ ${err.message}`, 'error');
+        if (typeof showToast === 'function') {
+            showToast(`❌ ${err.message}`, 'error');
+        } else {
+            alert(`❌ ${err.message}`);
+        }
+
         if (btn) {
             btn.disabled = false;
             btn.textContent = originalText;
@@ -112,16 +144,21 @@ async function buyNow(productId, name, price, emoji, btn) {
     try {
         await apiPost('/shop/cart/add/', {
             product_id: productId,
-            quantity: typeof _pdQty !== 'undefined' ? _pdQty : 1,
+            quantity: _pdQty,
             embroidery_name: embroidery,
             selected_size: size,
         });
 
-        // Redirection vers le checkout ChicShop
+        // Redirection vers ton étape de validation de commande
         window.location.href = '/shop/checkout/';
 
     } catch (err) {
-        showToast(`❌ ${err.message}`, 'error');
+        if (typeof showToast === 'function') {
+            showToast(`❌ ${err.message}`, 'error');
+        } else {
+            alert(`❌ ${err.message}`);
+        }
+
         if (btn) {
             btn.disabled = false;
             btn.textContent = '💸 Acheter maintenant';
@@ -133,12 +170,4 @@ async function buyNow(productId, name, price, emoji, btn) {
 document.addEventListener('DOMContentLoaded', () => {
     const firstTab = document.querySelector('.pd-tab');
     if (firstTab) firstTab.setAttribute('aria-selected', 'true');
-
-    const chips = document.querySelectorAll('.schip');
-    if (chips.length >= 2) {
-        chips[0].classList.remove('sel');
-        chips[1].classList.add('sel');
-    } else if (chips.length === 1) {
-        chips[0].classList.add('sel');
-    }
 });
