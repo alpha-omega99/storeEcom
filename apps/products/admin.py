@@ -23,7 +23,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_editable = ['is_available', 'is_featured', 'stock_quantity']
     fieldsets = (
         ('Général', {'fields': ('id', 'name', 'slug', 'category', 'badge', 'emoji', 'color', 'image')}),
-        ('Description', {'fields': ('description', 'short_description', 'included_items', 'available_sizes')}),
+        ('Description', {'fields': ('description', 'short_description', 'included_items',)}),
         ('Tarification', {'fields': ('price', 'original_price')}),
         ('Stock & Disponibilité', {'fields': ('stock_quantity', 'is_available', 'is_active', 'is_featured')}),
         ('Personnalisation', {'fields': ('allows_embroidery', 'max_embroidery_chars')}),

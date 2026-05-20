@@ -48,6 +48,7 @@ class Product(models.Model):
         Category, on_delete=models.PROTECT, related_name='products'
     )
     description = models.TextField()
+    short_description = models.TextField(blank=True, null=True, max_length=250)
 
     # Tarification
     price = models.DecimalField(
@@ -77,10 +78,7 @@ class Product(models.Model):
     image = models.ImageField(upload_to='products/', blank=True, null=True)
 
     # Inclusions (liste d'articles dans le pack)
-    included_items = models.JSONField(
-        default=list, blank=True,
-        help_text="Liste des articles inclus dans le pack"
-    )
+    included_items = models.TextField(blank=True, null=True, help_text="Éléments inclus dans ce produit (ex: 'Tapis de prière, Chapelet, Sac de transport')")
 
     # Tailles disponibles
     personne=(())
