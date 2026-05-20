@@ -12,8 +12,12 @@
     overflow: hidden;
     border: 1px solid var(--border);
     cursor: pointer;
-    transition: all .25s;
     position: relative;
+    transition: transform 0.3s, box-shadow 0.3s;
+    display: flex;
+    flex-direction: column;
+    /* —— MODIFICATION ICI : On passe à 10px —— */
+    padding: 10px;
 }
 
 .pcard:hover {
@@ -110,7 +114,7 @@
 }
 
 .pcard-body {
-    padding: 10px 12px
+    padding: 10px 4px 4px 4px;
 }
 
 .pcard-cat {
@@ -818,5 +822,194 @@
     }
     .cats-grid {
         grid-template-columns: repeat(2, 1fr)
+    }
+}
+
+
+/* ===== PACKS SECTION ===== */
+
+.packs-subtitle {
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+    margin: -0.5rem 0 1.5rem;
+    font-style: italic
+}
+
+.packs-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    align-items: start;
+    margin-bottom: 1rem
+}
+
+.pack-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative
+}
+
+.pack-card--featured {
+    border: 2px solid var(--rose)
+}
+
+.pack-badge {
+    position: absolute;
+    top: -13px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--rose);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 14px;
+    border-radius: 20px;
+    white-space: nowrap
+}
+
+.pack-icon {
+    font-size: 36px;
+    text-align: center
+}
+
+.pack-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--rose);
+    text-align: center;
+    margin: 0
+}
+
+.pack-tagline {
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    font-style: italic;
+    line-height: 1.4
+}
+
+.pack-price-block {
+    text-align: center;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 0
+}
+
+.pack-price {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text)
+}
+
+.pack-price small {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--muted)
+}
+
+.pack-price--featured {
+    color: var(--rose)
+}
+
+.pack-old {
+    font-size: 12px;
+    color: #bbb;
+    display: block
+}
+
+.pack-disc {
+    font-size: 10px;
+    background: #fff0f5;
+    color: var(--rose);
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-weight: 600
+}
+
+.pack-items {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 7px
+}
+
+.pack-items li {
+    font-size: 13px;
+    color: #555;
+    padding-left: 16px;
+    position: relative;
+    line-height: 1.45
+}
+
+.pack-items li::before {
+    content: '✦';
+    position: absolute;
+    left: 0;
+    color: var(--rose);
+    font-size: 11px;
+    top: 1px
+}
+
+.pack-btn {
+    display: block;
+    width: 100%;
+    padding: 11px;
+    border-radius: 30px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1.5px solid var(--rose);
+    color: var(--rose);
+    background: transparent;
+    transition: all 0.2s;
+    cursor: pointer;
+    font-family: var(--f)
+}
+
+.pack-btn:hover {
+    background: #fff0f5
+}
+
+.pack-btn--featured {
+    background: var(--or);
+    color: #4a2c00;
+    border-color: var(--or)
+}
+
+.pack-btn--featured:hover {
+    background: #c49d30;
+    border-color: #c49d30
+}
+
+.packs-note {
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 1rem
+}
+
+.packs-note strong {
+    color: var(--rose)
+}
+
+@media(max-width:768px) {
+    .packs-grid {
+        grid-template-columns: 1fr
+    }
+}
+
+@media(max-width:480px) {
+    .pack-card--featured {
+        margin-top: 16px
     }
 }

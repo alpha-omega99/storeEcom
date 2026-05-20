@@ -1,13 +1,3 @@
-/* ============================================================
-   ChicShop — product.js
-   Page détail produit :
-   - Aperçu broderie en temps réel
-   - Gestion onglets
-   - Sélection taille / miniature
-   - Quantité
-   - Ajout au panier
-   ============================================================ */
-
 'use strict';
 
 let _pdQty = 1;
@@ -60,14 +50,19 @@ function updateEmbroideryPreview(value) {
 }
 
 /* ===== AJOUTER AU PANIER DEPUIS DÉTAIL ===== */
-async function addToCartFromDetail(productId, name, price, emoji) {
+async function addToCartFromDetail(productId, name, price, emoji, btn) {
+    // Correction de l'espace dans le optional chaining (?.)
     const embroidery = document.getElementById('embroideryInput') ? .value ? .trim() || '';
     const sizeEl = document.querySelector('.schip.sel');
     const size = sizeEl ? sizeEl.dataset.size || sizeEl.textContent.trim() : '';
-    const btn = document.querySelector('.btn-addcart');
 
-    if (btn) { btn.disabled = true;
-        btn.textContent = '⏳ Ajout...'; }
+    // Garder en mémoire le texte de départ du bouton ciblé
+    const originalText = btn ? btn.textContent : '🛒 Ajouter au panier';
+
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ Ajout...';
+    }
 
     try {
         const data = await apiPost('/shop/cart/add/', {
@@ -76,29 +71,69 @@ async function addToCartFromDetail(productId, name, price, emoji) {
             embroidery_name: embroidery,
             selected_size: size,
         });
+
         updateCartBadge(data.cart_count);
         showToast(`✅ ${name} ajouté au panier !`);
-        if (btn) { btn.style.background = '#28a745';
-            btn.textContent = '✅ Ajouté !'; }
+
+        if (btn) {
+            btn.style.background = '#28a745';
+            btn.style.color = '#ffffff';
+            btn.textContent = '✅ Ajouté !';
+        }
+
         setTimeout(() => {
-            if (btn) { btn.style.background = '';
-                btn.textContent = '🛒 Ajouter au panier';
-                btn.disabled = false; }
+            if (btn) {
+                btn.style.background = '';
+                btn.style.color = '';
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
         }, 2000);
     } catch (err) {
         showToast(`❌ ${err.message}`, 'error');
-        if (btn) { btn.disabled = false;
-            btn.textContent = '🛒 Ajouter au panier'; }
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    }
+}
+
+/* ===== ACHETER MAINTENANT ===== */
+async function buyNow(productId, name, price, emoji, btn) {
+    const embroidery = document.getElementById('embroideryInput') ? .value ? .trim() || '';
+    const sizeEl = document.querySelector('.schip.sel');
+    const size = sizeEl ? (sizeEl.dataset.size || sizeEl.textContent.trim()) : '';
+
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ Redirection...';
+    }
+
+    try {
+        await apiPost('/shop/cart/add/', {
+            product_id: productId,
+            quantity: typeof _pdQty !== 'undefined' ? _pdQty : 1,
+            embroidery_name: embroidery,
+            selected_size: size,
+        });
+
+        // Redirection vers le checkout ChicShop
+        window.location.href = '/shop/checkout/';
+
+    } catch (err) {
+        showToast(`❌ ${err.message}`, 'error');
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '💸 Acheter maintenant';
+        }
     }
 }
 
 /* ===== INIT ===== */
 document.addEventListener('DOMContentLoaded', () => {
-    // Activer le premier onglet
     const firstTab = document.querySelector('.pd-tab');
     if (firstTab) firstTab.setAttribute('aria-selected', 'true');
 
-    // Sélectionner la 2ème taille par défaut (comme dans l'original)
     const chips = document.querySelectorAll('.schip');
     if (chips.length >= 2) {
         chips[0].classList.remove('sel');
