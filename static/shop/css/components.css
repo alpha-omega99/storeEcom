@@ -1,6 +1,13 @@
 /* ============================================================
    ChicShop — components.css
    Composants réutilisables : pcard, sidebar, forms, pagination
+
+   CORRECTIONS :
+   - .pcard : suppression du padding:10px qui cassait le layout (image
+     ne respectait plus le border-radius et débordait)
+   - .buy-now : style distinct du bouton "Acheter maintenant"
+   - .pcard-img-placeholder : hauteur fixée à 180px (cohérence)
+   - .prod-grid : minmax augmenté à 210px pour plus de respiraiton
    ============================================================ */
 
 
@@ -13,16 +20,15 @@
     border: 1px solid var(--border);
     cursor: pointer;
     position: relative;
-    transition: transform 0.3s, box-shadow 0.3s;
+    transition: transform 0.25s, box-shadow 0.25s;
     display: flex;
     flex-direction: column;
-    /* —— MODIFICATION ICI : On passe à 10px —— */
-    padding: 10px;
+    /* CORRECTION : pas de padding ici — l'image doit aller bord à bord */
 }
 
 .pcard:hover {
     transform: translateY(-4px);
-    box-shadow: var(--shadow)
+    box-shadow: var(--shadow);
 }
 
 .pcard-link {
@@ -38,7 +44,8 @@
     width: 100%;
     height: 180px;
     object-fit: cover;
-    display: block
+    display: block;
+    /* CORRECTION : pas de border-radius ici, le overflow:hidden du parent s'en charge */
 }
 
 .pcard-img-placeholder {
@@ -51,6 +58,7 @@
     font-family: 'Dancing Script', cursive;
     font-size: 22px;
     color: var(--rose);
+    flex-shrink: 0;
 }
 
 .pcard-badges {
@@ -59,7 +67,7 @@
     left: 8px;
     display: flex;
     flex-direction: column;
-    gap: 4px
+    gap: 4px;
 }
 
 .pbadge-new {
@@ -105,6 +113,7 @@
     border: none;
     box-shadow: 0 2px 8px rgba(0, 0, 0, .1);
     transition: all .2s;
+    cursor: pointer;
 }
 
 .pwish:hover,
@@ -113,8 +122,14 @@
     color: #fff
 }
 
+
+/* Le body de la card a le vrai padding */
+
 .pcard-body {
-    padding: 10px 4px 4px 4px;
+    padding: 10px 12px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .pcard-cat {
@@ -147,7 +162,9 @@
 .pcard-price {
     display: flex;
     align-items: baseline;
-    gap: 7px
+    gap: 7px;
+    flex-wrap: wrap;
+    margin-bottom: 2px
 }
 
 .pcard-price strong {
@@ -172,14 +189,17 @@
 
 .pcard-btn {
     width: 100%;
-    margin-top: 8px;
+    margin-top: auto;
+    padding-top: 8px;
     background: var(--rose);
     color: #fff;
     border: none;
     padding: 9px;
     border-radius: 24px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
+    cursor: pointer;
+    font-family: var(--f);
     transition: all .2s;
 }
 
@@ -253,7 +273,7 @@
     font-weight: 600;
     padding: 5px 14px;
     border-radius: 20px;
-    display: inline-block;
+    display: inline-block
 }
 
 
@@ -274,6 +294,7 @@
     text-align: center;
     transition: all .2s;
     display: block;
+    color: inherit
 }
 
 .ccat:hover {
@@ -332,7 +353,7 @@
     font-family: 'Playfair Display', serif;
     font-size: 14px;
     font-weight: 600;
-    flex-shrink: 0;
+    flex-shrink: 0
 }
 
 .tc2-name {
@@ -501,7 +522,7 @@
     font-size: 12px;
     font-weight: 500;
     cursor: pointer;
-    font-family: var(--f);
+    font-family: var(--f)
 }
 
 .reset-filter {
@@ -510,7 +531,7 @@
     margin-top: 8px;
     font-size: 11px;
     color: var(--muted);
-    cursor: pointer;
+    cursor: pointer
 }
 
 .reset-filter:hover {
@@ -528,7 +549,7 @@
     background: #fff;
     border-radius: 10px;
     padding: 10px 14px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border)
 }
 
 .sort-bar span {
@@ -544,7 +565,7 @@
     font-family: var(--f);
     color: var(--text);
     background: #fff;
-    cursor: pointer;
+    cursor: pointer
 }
 
 .sort-bar select:focus {
@@ -613,6 +634,13 @@
     }
 }
 
+.field-error {
+    font-size: 10px;
+    color: #ff4444;
+    display: block;
+    margin-top: 3px
+}
+
 
 /* ===== PAGINATION ===== */
 
@@ -632,7 +660,7 @@
     color: var(--muted);
     background: #fff;
     transition: all .2s;
-    cursor: pointer;
+    cursor: pointer
 }
 
 .page-btn:hover,
@@ -659,7 +687,7 @@
     padding: 12px;
     text-align: center;
     cursor: pointer;
-    transition: all .2s;
+    transition: all .2s
 }
 
 .pm-opt:hover,
@@ -679,7 +707,7 @@
 }
 
 
-/* ===== PROMO PAGE HERO ===== */
+/* ===== PROMO PAGE ===== */
 
 .promo-hero {
     background: linear-gradient(135deg, #ff4444, #c0436e);
@@ -687,7 +715,7 @@
     padding: 2rem;
     margin-bottom: 1.5rem;
     text-align: center;
-    color: #fff;
+    color: #fff
 }
 
 .promo-hero h1 {
@@ -749,7 +777,7 @@
     border-radius: 14px;
     padding: 1.25rem;
     margin-bottom: 1.5rem;
-    text-align: left;
+    text-align: left
 }
 
 .success-steps-title {
@@ -799,30 +827,44 @@
 }
 
 
-/* ===== RESPONSIVE COMPONENTS ===== */
+/* ===== BUY NOW BUTTON ===== */
 
-@media(max-width:768px) {
-    .hero-banner {
-        grid-template-columns: 1fr
-    }
-    .hero-visual {
-        display: none
-    }
-    .shop-layout {
-        grid-template-columns: 1fr
-    }
-    .sidebar {
-        display: none
-    }
-    .banner-grid {
-        grid-template-columns: 1fr
-    }
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr)
-    }
-    .cats-grid {
-        grid-template-columns: repeat(2, 1fr)
-    }
+
+/* CORRECTION : style distinct pour "Acheter maintenant" */
+
+.buy-now {
+    background: linear-gradient(135deg, var(--rose), #ff4444) !important;
+    color: #4a2c00 !important;
+    box-shadow: 0 4px 16px var(--rose) !important;
+}
+
+.buy-now:hover {
+    background: linear-gradient(135deg, var(--rose), #ff4444) !important;
+    transform: translateY(-1px)
+}
+
+
+/* ===== CART PROMO MSG ===== */
+
+.promo-msg {
+    font-size: 12px;
+    padding: 4px 0;
+    min-height: 18px
+}
+
+.promo-msg.ok {
+    color: #2d6e2d
+}
+
+.promo-msg.err {
+    color: #ff4444
+}
+
+.cart-trust {
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center
 }
 
 
@@ -1002,6 +1044,111 @@
     color: var(--rose)
 }
 
+
+/* ===== LUXURY DYNAMIC BANNER ===== */
+
+.dynamic-banner-container {
+    width: 100%;
+    background-color: #111111;
+    /* Noir mat luxe */
+    color: #ffffff;
+    overflow: hidden;
+    user-select: none;
+    padding: 18px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    margin-top: 5rem;
+}
+
+.dynamic-banner-track {
+    display: flex;
+    width: max-content;
+}
+
+.dynamic-banner-group {
+    display: flex;
+    align-items: center;
+    animation: marquee 30s linear infinite;
+    padding-right: 2rem;
+}
+
+
+/* Style de chaque item (Icône + Texte) */
+
+.db-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    /* Espace entre l'icône et le texte */
+    font-size: 13px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    white-space: nowrap;
+    margin-right: 5rem;
+    /* Grand espace entre chaque bloc argument */
+}
+
+
+/* Icônes SVG fines */
+
+.db-icon {
+    width: 20px;
+    height: 20px;
+    color: #d4af37;
+    /* Ta nuance d'or/doré pour rappeler ChicShop */
+    flex-shrink: 0;
+}
+
+
+/* Style des images médias intercalées */
+
+.db-img-thumb {
+    height: 35px;
+    width: 50px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-right: 5rem;
+    filter: grayscale(20%);
+    /* Donne un effet éditorial argentique très chic */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+
+/* Défilement infini linéaire */
+
+@keyframes marquee {
+    0% {
+        transform: translateX(0%);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+
+/* Responsive Smartphones */
+
+@media (max-width: 768px) {
+    .dynamic-banner-container {
+        padding: 14px 0;
+    }
+    .db-item {
+        font-size: 11px;
+        gap: 8px;
+        margin-right: 3rem;
+    }
+    .db-icon {
+        width: 16px;
+        height: 16px;
+    }
+    .db-img-thumb {
+        height: 26px;
+        width: 38px;
+        margin-right: 3rem;
+    }
+}
+
 @media(max-width:768px) {
     .packs-grid {
         grid-template-columns: 1fr
@@ -1011,5 +1158,44 @@
 @media(max-width:480px) {
     .pack-card--featured {
         margin-top: 16px
+    }
+}
+
+
+/* ===== RESPONSIVE COMPONENTS ===== */
+
+@media(max-width:768px) {
+    .hero-banner {
+        grid-template-columns: 1fr
+    }
+    .hero-visual {
+        display: none
+    }
+    .shop-layout {
+        grid-template-columns: 1fr
+    }
+    .sidebar {
+        display: none
+    }
+    .banner-grid {
+        grid-template-columns: 1fr
+    }
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr)
+    }
+    .cats-grid {
+        grid-template-columns: repeat(2, 1fr)
+    }
+    .pd-layout {
+        grid-template-columns: 1fr
+    }
+    .cart-layout {
+        grid-template-columns: 1fr
+    }
+    .checkout-layout {
+        grid-template-columns: 1fr
+    }
+    .account-layout {
+        grid-template-columns: 1fr
     }
 }

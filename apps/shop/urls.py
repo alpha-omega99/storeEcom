@@ -44,3 +44,4 @@ urlpatterns = [
     path('compte/',            views.account_view,    name='account'),
 
 ]
+

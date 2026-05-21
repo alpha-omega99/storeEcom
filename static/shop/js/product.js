@@ -1,91 +1,89 @@
 /* ============================================================
    ChicShop — product.js
+   Page détail produit
+
+   CORRECTIONS :
+   - Suppression de la double définition de apiPost() (déjà dans utils.js)
+   - URL buyNow corrigée : /shop/checkout/ → /commander/
+   - Optional chaining (?.) remplacé pour compatibilité navigateurs
+   - Sélection taille par défaut ajoutée au DOMContentLoaded
    ============================================================ */
 
 'use strict';
 
 let _pdQty = 1;
 
-/* ===== FONCTION DE REQUÊTE API POST (Robuste & Sécurisée) ===== */
-async function apiPost(url, data) {
-    // Force l'ajout du slash à la fin si oublié pour éviter les redirections 301 de Django
-    if (!url.endsWith('/')) {
-        url += '/';
-    }
-
-    // Récupération du jeton CSRF obligatoire pour Django
-    const csrfToken = document.cookie.split('; ')
-        .find(row => row.startsWith('csrftoken=')) ?
-        .split('=')[1];
-
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken
-        },
-        body: JSON.stringify(data)
-    });
-
-    if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Erreur du serveur (${response.status})`);
-    }
-
-    return await response.json();
-}
-
 /* ===== GESTION DES ONGLETS ===== */
 function switchTab(el, contentId) {
     const infoBlock = el.closest('.pd-info');
     if (!infoBlock) return;
 
-    infoBlock.querySelectorAll('.pd-tab').forEach(t => {
+    infoBlock.querySelectorAll('.pd-tab').forEach(function(t) {
         t.classList.remove('active');
         t.setAttribute('aria-selected', 'false');
     });
-    infoBlock.querySelectorAll('.pd-tab-content').forEach(c => c.classList.remove('active'));
+    infoBlock.querySelectorAll('.pd-tab-content').forEach(function(c) {
+        c.classList.remove('active');
+    });
 
     el.classList.add('active');
     el.setAttribute('aria-selected', 'true');
-    const content = document.getElementById(contentId);
+    var content = document.getElementById(contentId);
     if (content) content.classList.add('active');
 }
 
-/* ===== SÉLECTION DE MINIATURE ===== */
+/* ===== SÉLECTION MINIATURE ===== */
 function selectThumb(el, imgUrl) {
-    document.querySelectorAll('.pd-thumb').forEach(t => t.classList.remove('sel'));
+    document.querySelectorAll('.pd-thumb').forEach(function(t) {
+        t.classList.remove('sel');
+    });
     el.classList.add('sel');
     if (imgUrl) {
-        const main = document.getElementById('pdMainImgEl');
+        var main = document.getElementById('pdMainImgEl');
         if (main) main.src = imgUrl;
     }
 }
 
-/* ===== SÉLECTION DE LA QUANTITÉ ===== */
+/* ===== SÉLECTION TAILLE ===== */
+function selectSize(el) {
+    var parent = el.closest('.size-chips');
+    if (parent) {
+        parent.querySelectorAll('.schip').forEach(function(s) {
+            s.classList.remove('sel');
+        });
+    }
+    el.classList.add('sel');
+}
+
+/* ===== QUANTITÉ ===== */
 function changeQty(delta) {
     _pdQty = Math.max(1, Math.min(20, _pdQty + delta));
-    const el = document.getElementById('pdQty');
+    var el = document.getElementById('pdQty');
     if (el) el.textContent = _pdQty;
 }
 
-/* ===== APERÇU DE LA BRODERIE EN TEMPS RÉEL ===== */
+/* ===== APERÇU BRODERIE EN TEMPS RÉEL ===== */
 function updateEmbroideryPreview(value) {
-    const preview = document.getElementById('pdLiveName') || document.getElementById('pdNamePreview');
+    var preview = document.getElementById('pdLiveName') || document.getElementById('pdNamePreview');
     if (!preview) return;
-    const text = value.trim() || 'Votre prénom';
+    var text = value.trim() || 'Votre prénom';
     preview.textContent = text;
     preview.style.transform = 'scale(1.04)';
-    setTimeout(() => { preview.style.transform = 'scale(1)'; }, 200);
+    setTimeout(function() {
+        preview.style.transform = 'scale(1)';
+    }, 200);
 }
 
-/* ===== AJOUTER AU PANIER ===== */
+/* ===== AJOUTER AU PANIER DEPUIS LA PAGE DÉTAIL ===== */
 async function addToCartFromDetail(productId, name, price, emoji, btn) {
-    const embroidery = document.getElementById('embroideryInput') ? .value ? .trim() || '';
-    const sizeEl = document.querySelector('.schip.sel');
-    const size = sizeEl ? (sizeEl.dataset.size || sizeEl.textContent.trim()) : '';
+    // CORRECTION : remplacé ?. par accès conditionnel classique
+    var embroideryEl = document.getElementById('embroideryInput');
+    var embroidery = embroideryEl ? embroideryEl.value.trim() : '';
 
-    const originalText = btn ? btn.textContent : '🛒 Ajouter au panier';
+    var sizeEl = document.querySelector('.schip.sel');
+    var size = sizeEl ? (sizeEl.dataset.size || sizeEl.textContent.trim()) : '';
+
+    var originalText = btn ? btn.textContent : '🛒 Ajouter au panier';
 
     if (btn) {
         btn.disabled = true;
@@ -93,23 +91,16 @@ async function addToCartFromDetail(productId, name, price, emoji, btn) {
     }
 
     try {
-        const data = await apiPost('/shop/cart/add/', {
+        // CORRECTION : URL correcte /panier/ajouter/ (via apiPost de utils.js)
+        var data = await apiPost('/panier/ajouter/', {
             product_id: productId,
             quantity: _pdQty,
             embroidery_name: embroidery,
             selected_size: size,
         });
 
-        // Mise à jour de l'affichage du badge du panier
-        if (typeof updateCartBadge === 'function') {
-            updateCartBadge(data.cart_count);
-        }
-
-        if (typeof showToast === 'function') {
-            showToast(`✅ ${name} ajouté au panier !`);
-        } else {
-            alert(`✅ ${name} a été ajouté au panier !`);
-        }
+        updateCartBadge(data.cart_count);
+        showToast('✅ ' + name + ' ajouté au panier !');
 
         if (btn) {
             btn.style.background = '#28a745';
@@ -117,7 +108,7 @@ async function addToCartFromDetail(productId, name, price, emoji, btn) {
             btn.textContent = '✅ Ajouté !';
         }
 
-        setTimeout(() => {
+        setTimeout(function() {
             if (btn) {
                 btn.style.background = '';
                 btn.style.color = '';
@@ -127,12 +118,7 @@ async function addToCartFromDetail(productId, name, price, emoji, btn) {
         }, 2000);
 
     } catch (err) {
-        if (typeof showToast === 'function') {
-            showToast(`❌ ${err.message}`, 'error');
-        } else {
-            alert(`❌ Erreur : ${err.message}`);
-        }
-
+        showToast('❌ ' + err.message, 'error');
         if (btn) {
             btn.disabled = false;
             btn.textContent = originalText;
@@ -140,11 +126,14 @@ async function addToCartFromDetail(productId, name, price, emoji, btn) {
     }
 }
 
-/* ===== ACHETER MAINTENANT (Acheter directement) ===== */
+/* ===== ACHETER MAINTENANT ===== */
 async function buyNow(productId, name, price, emoji, btn) {
-    const embroidery = document.getElementById('embroideryInput') ? .value ? .trim() || '';
-    const sizeEl = document.querySelector('.schip.sel');
-    const size = sizeEl ? (sizeEl.dataset.size || sizeEl.textContent.trim()) : '';
+    // CORRECTION : remplacé ?. par accès conditionnel classique
+    var embroideryEl = document.getElementById('embroideryInput');
+    var embroidery = embroideryEl ? embroideryEl.value.trim() : '';
+
+    var sizeEl = document.querySelector('.schip.sel');
+    var size = sizeEl ? (sizeEl.dataset.size || sizeEl.textContent.trim()) : '';
 
     if (btn) {
         btn.disabled = true;
@@ -152,23 +141,19 @@ async function buyNow(productId, name, price, emoji, btn) {
     }
 
     try {
-        await apiPost('/shop/cart/add/', {
+        // CORRECTION : URL correcte /panier/ajouter/
+        await apiPost('/panier/ajouter/', {
             product_id: productId,
             quantity: _pdQty,
             embroidery_name: embroidery,
             selected_size: size,
         });
 
-        // Redirection instantanée vers l'encaissement ChicShop
-        window.location.href = '/shop/checkout/';
+        // CORRECTION : URL checkout correcte /commander/
+        window.location.href = '/commander/';
 
     } catch (err) {
-        if (typeof showToast === 'function') {
-            showToast(`❌ ${err.message}`, 'error');
-        } else {
-            alert(`❌ Erreur : ${err.message}`);
-        }
-
+        showToast('❌ ' + err.message, 'error');
         if (btn) {
             btn.disabled = false;
             btn.textContent = '💸 Acheter maintenant';
@@ -176,8 +161,15 @@ async function buyNow(productId, name, price, emoji, btn) {
     }
 }
 
-/* ===== SYNC INITIALISATION ===== */
-document.addEventListener('DOMContentLoaded', () => {
-    const firstTab = document.querySelector('.pd-tab');
+/* ===== INIT PAGE DÉTAIL ===== */
+document.addEventListener('DOMContentLoaded', function() {
+    // Activer aria-selected sur le premier onglet
+    var firstTab = document.querySelector('.pd-tab');
     if (firstTab) firstTab.setAttribute('aria-selected', 'true');
+
+    // Sélectionner la première taille disponible par défaut
+    var chips = document.querySelectorAll('.schip');
+    if (chips.length > 0) {
+        chips[0].classList.add('sel');
+    }
 });

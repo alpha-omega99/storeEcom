@@ -1,6 +1,10 @@
 /* ============================================================
    ChicShop — utils.js
-   Utilitaires globaux : toast, CSRF, helpers
+   Utilitaires globaux : toast, CSRF, fetch helpers, wishlist
+
+   CORRECTIONS :
+   - syncWishlistServer : URL /api/v1/wishlist/ remplacée par /favoris/toggle/
+     qui existe réellement dans shop/urls.py
    ============================================================ */
 
 'use strict';
@@ -8,29 +12,43 @@
 /* ===== TOAST ===== */
 let _toastTimer = null;
 
-function showToast(msg, type = 'default') {
-    const t = document.getElementById('toast');
+function showToast(msg, type) {
+    type = type || 'default';
+    var t = document.getElementById('toast');
     if (!t) return;
     t.textContent = msg;
     t.className = type === 'error' ? 'show toast-error' : 'show';
     clearTimeout(_toastTimer);
-    _toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+    _toastTimer = setTimeout(function() {
+        t.classList.remove('show');
+    }, 2600);
 }
 
 /* ===== CSRF TOKEN ===== */
 function getCsrfToken() {
-    const el = document.querySelector('[name=csrfmiddlewaretoken]');
+    // 1. Cherche dans le formulaire Django
+    var el = document.querySelector('[name=csrfmiddlewaretoken]');
     if (el) return el.value;
-    const meta = document.querySelector('meta[name="csrf-token"]');
+    // 2. Cherche dans la balise meta
+    var meta = document.querySelector('meta[name="csrf-token"]');
     if (meta) return meta.getAttribute('content');
-    const cookie = document.cookie.split(';')
-        .find(c => c.trim().startsWith('csrftoken='));
-    return cookie ? cookie.split('=')[1] : '';
+    // 3. Cherche dans le cookie (fallback)
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+        var c = cookies[i].trim();
+        if (c.startsWith('csrftoken=')) {
+            return c.split('=')[1];
+        }
+    }
+    return '';
 }
 
-/* ===== API HELPER (fetch JSON avec CSRF) ===== */
+/* ===== API POST (JSON + CSRF) ===== */
 async function apiPost(url, data) {
-    const res = await fetch(url, {
+    // Ajouter le slash final si absent (Django redirige sinon en 301)
+    if (!url.endsWith('/')) url += '/';
+
+    var res = await fetch(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -39,18 +57,22 @@ async function apiPost(url, data) {
         },
         body: JSON.stringify(data),
     });
+
     if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: 'Erreur réseau' }));
-        throw new Error(err.detail || `HTTP ${res.status}`);
+        var err = await res.json().catch(function() {
+            return { detail: 'Erreur réseau (' + res.status + ')' };
+        });
+        throw new Error(err.detail || err.error || err.message || ('HTTP ' + res.status));
     }
     return res.json();
 }
 
+/* ===== API GET ===== */
 async function apiGet(url) {
-    const res = await fetch(url, {
+    var res = await fetch(url, {
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     return res.json();
 }
 
@@ -60,60 +82,99 @@ function formatPrice(amount) {
 }
 
 /* ===== DEBOUNCE ===== */
-function debounce(fn, delay = 300) {
-    let t;
-    return (...args) => { clearTimeout(t);
-        t = setTimeout(() => fn(...args), delay); };
+function debounce(fn, delay) {
+    delay = delay || 300;
+    var t;
+    return function() {
+        var args = arguments;
+        clearTimeout(t);
+        t = setTimeout(function() { fn.apply(null, args); }, delay);
+    };
 }
 
 /* ===== BADGE PANIER ===== */
 function updateCartBadge(count) {
-    const badge = document.getElementById('cartBadge');
+    var badge = document.getElementById('cartBadge');
     if (badge) {
         badge.textContent = count;
         badge.style.animation = 'none';
-        requestAnimationFrame(() => { badge.style.animation = 'pop .3s ease'; });
+        requestAnimationFrame(function() {
+            badge.style.animation = 'pop .3s ease';
+        });
     }
 }
 
 /* ===== WISHLIST (localStorage) ===== */
-const WishlistStore = {
+var WishlistStore = {
     key: 'cs_wishlist',
-    get() { try { return JSON.parse(localStorage.getItem(this.key)) || []; } catch { return []; } },
-    set(ids) { localStorage.setItem(this.key, JSON.stringify(ids)); },
-    has(id) { return this.get().includes(Number(id)); },
-    add(id) { const l = this.get(); if (!l.includes(Number(id))) { l.push(Number(id));
-            this.set(l); } },
-    remove(id) { this.set(this.get().filter(x => x !== Number(id))); },
-    toggle(id) { this.has(id) ? this.remove(id) : this.add(id); return this.has(id); },
+    get: function() {
+        try {
+            return JSON.parse(localStorage.getItem(this.key)) || [];
+        } catch (e) {
+            return [];
+        }
+    },
+    set: function(ids) {
+        localStorage.setItem(this.key, JSON.stringify(ids));
+    },
+    has: function(id) {
+        return this.get().indexOf(Number(id)) !== -1;
+    },
+    add: function(id) {
+        var l = this.get();
+        if (l.indexOf(Number(id)) === -1) {
+            l.push(Number(id));
+            this.set(l);
+        }
+    },
+    remove: function(id) {
+        this.set(this.get().filter(function(x) { return x !== Number(id); }));
+    },
+    toggle: function(id) {
+        if (this.has(id)) { this.remove(id); } else { this.add(id); }
+        return this.has(id);
+    },
 };
 
-/* ===== TOGGLE WISHLIST (appelé par tous les boutons ♡) ===== */
+/* ===== TOGGLE WISHLIST ===== */
 function toggleWish(productId, btn) {
-    const active = WishlistStore.toggle(productId);
-    // Mettre à jour tous les boutons avec ce product id
-    document.querySelectorAll(`.pwish[onclick*="${productId}"]`).forEach(b => {
-        b.classList.toggle('active', active);
+    var active = WishlistStore.toggle(productId);
+
+    // Mettre à jour tous les boutons ♡ de ce produit
+    document.querySelectorAll('.pwish').forEach(function(b) {
+        if (b.getAttribute('onclick') && b.getAttribute('onclick').indexOf(String(productId)) !== -1) {
+            b.classList.toggle('active', active);
+        }
     });
     if (btn) btn.classList.toggle('active', active);
+
     showToast(active ? '❤️ Ajouté aux favoris !' : 'Retiré des favoris');
-    // Sync avec le serveur si connecté
+
+    // CORRECTION : URL correcte /favoris/toggle/ (existe dans shop/urls.py)
     syncWishlistServer(productId, active);
 }
 
 async function syncWishlistServer(productId, add) {
     try {
-        await apiPost('/api/v1/wishlist/', { product_id: productId, action: add ? 'add' : 'remove' });
-    } catch {
-        // Silencieux — le localStorage fait foi en fallback
+        await apiPost('/favoris/toggle/', {
+            product_id: productId,
+            action: add ? 'add' : 'remove'
+        });
+    } catch (e) {
+        // Silencieux — localStorage fait foi en fallback
     }
 }
 
-/* ===== INITIALISER L'ÉTAT WISHLIST AU CHARGEMENT ===== */
+/* ===== INIT WISHLIST AU CHARGEMENT ===== */
 function initWishlistButtons() {
-    const ids = WishlistStore.get();
-    ids.forEach(id => {
-        document.querySelectorAll(`.pwish[onclick*="${id}"]`).forEach(b => b.classList.add('active'));
+    var ids = WishlistStore.get();
+    ids.forEach(function(id) {
+        document.querySelectorAll('.pwish').forEach(function(b) {
+            if (b.getAttribute('onclick') && b.getAttribute('onclick').indexOf(String(id)) !== -1) {
+                b.classList.add('active');
+            }
+        });
     });
 }
+
 document.addEventListener('DOMContentLoaded', initWishlistButtons);

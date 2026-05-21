@@ -2,14 +2,18 @@
    ChicShop — cart.js
    Gestion globale du panier : badge, add to cart
    Appelé sur toutes les pages via base.html
+
+   CORRECTIONS :
+   - URLs corrigées : /shop/cart/add/ → /panier/ajouter/
+   - URLs corrigées : /shop/cart/count/ → /panier/count/
    ============================================================ */
 
 'use strict';
 
-/* ===== ADD TO CART (depuis grille, suggestions, flash) ===== */
+/* ===== ADD TO CART (depuis grille catalogue, flash sale) ===== */
 async function addToCart(productId, name, price, emoji) {
     try {
-        const data = await apiPost('/shop/cart/add/', {
+        const data = await apiPost('/panier/ajouter/', {
             product_id: productId,
             quantity: 1,
         });
@@ -20,10 +24,10 @@ async function addToCart(productId, name, price, emoji) {
     }
 }
 
-/* ===== CHARGER LE BADGE AU DÉMARRAGE ===== */
+/* ===== CHARGER LE BADGE PANIER AU DÉMARRAGE ===== */
 async function loadCartBadge() {
     try {
-        const data = await apiGet('/shop/cart/count/');
+        const data = await apiGet('/panier/count/');
         updateCartBadge(data.cart_count);
     } catch {
         // Silencieux — le template a déjà rendu la valeur serveur
