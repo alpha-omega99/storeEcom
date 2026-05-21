@@ -13,22 +13,30 @@
   <div class="cart-items">
     <div class="cart-header">🛒 Mon panier ({{ cart_items|length }} article{{ cart_items|length|pluralize }})</div>
     {% for item in cart_items %}
-    <div class="cart-item" id="ci-{{ item.product.id }}">
+    <!-- CORRECTION : id unique basé sur cart_key (pas product.id) -->
+    <div class="cart-item" id="ci-{{ forloop.counter }}" data-cart-key="{{ item.cart_key }}">
       <div class="ci-img">
         {% if item.product.image %}<img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
         {% else %}{{ item.product.emoji }} {{ item.product.name|truncatewords:1 }}{% endif %}
       </div>
       <div class="ci-details">
         <div class="ci-name">{{ item.product.name }}</div>
-        <div class="ci-opts">{% if item.size %}{{ item.size }}{% endif %}{% if item.embroidery_name %} · Broderie : {{ item.embroidery_name }}{% endif %}</div>
-        <div class="ci-qty">
-          <button onclick="updateCartQty({{ item.product.id }}, -1)" type="button">−</button>
-          <span id="qty-{{ item.product.id }}">{{ item.quantity }}</span>
-          <button onclick="updateCartQty({{ item.product.id }}, 1)" type="button">+</button>
+        <!-- CORRECTION : Affichage clair des variantes -->
+        <div class="ci-opts">
+          {% if item.size %}<span class="ci-opt">📐 {{ item.size }}</span>{% endif %}
+          {% if item.embroidery_name %}<span class="ci-opt">✨ Broderie : {{ item.embroidery_name }}</span>{% endif %}
         </div>
-        <button class="ci-remove" onclick="removeFromCart({{ item.product.id }})" type="button">🗑 Supprimer</button>
+        <div class="ci-qty">
+          <!-- CORRECTION : onclick utilise cart_key -->
+          <button onclick="updateCartQty('{{ item.cart_key|escapejs }}', -1)" type="button">−</button>
+          <span id="qty-{{ forloop.counter }}">{{ item.quantity }}</span>
+          <button onclick="updateCartQty('{{ item.cart_key|escapejs }}', 1)" type="button">+</button>
+        </div>
+        <!-- CORRECTION : onclick utilise cart_key -->
+        <button class="ci-remove" onclick="removeFromCart('{{ item.cart_key|escapejs }}')" type="button">🗑 Supprimer</button>
       </div>
-      <div class="ci-price" id="price-{{ item.product.id }}">{{ item.line_total|floatformat:0 }} F</div>
+      <!-- CORRECTION : id basé sur forloop.counter -->
+      <div class="ci-price" id="price-{{ forloop.counter }}">{{ item.line_total|floatformat:0 }} F</div>
     </div>
     {% endfor %}
   </div>

@@ -93,7 +93,7 @@
     <!-- Tailles -->
     {% if product.available_sizes %}
     <div class="pd-options">
-      <div class="od-label">Taille du tapis</div>
+      <div class="od-label">Taille du tapis <span style="color:#c0392b">*</span></div>
       <div class="size-chips">
         {% for size in product.available_sizes %}
           <button class="schip {% if forloop.first %}sel{% endif %}"
@@ -102,6 +102,9 @@
           </button>
         {% endfor %}
       </div>
+      <small class="size-hint" style="color:var(--muted);font-size:12px;margin-top:4px;display:block">
+        Sélectionnez une taille pour continuer
+      </small>
     </div>
     {% endif %}
 
@@ -128,7 +131,7 @@
       </div>
     </div>
 
-    <!-- ACTIONS PRINCIPALES -->
+    <!-- ACTIONS PRINCIPALES (fusionnées) -->
     <div class="pd-actions">
       <!-- Ajouter au panier -->
       <button class="btn-addcart"
@@ -138,21 +141,19 @@
         🛒 Ajouter au panier
       </button>
 
-      <!-- Favoris -->
-      <button class="btn-wish {% if product.id in wishlist_ids %}active{% endif %}"
-              onclick="toggleWish('{{ product.id }}', this)"
-              aria-label="Ajouter aux favoris"
-              type="button">♡</button>
-    </div>
-
-    <!-- Acheter maintenant -->
-    <div class="pd-actions" style="margin-top: -6px;">
+      <!-- Acheter maintenant -->
       <button class="btn-addcart buy-now"
               onclick="buyNow('{{ product.id }}', '{{ product.name|escapejs }}', {{ product.price }}, '{{ product.emoji|escapejs }}', this)"
               {% if not product.is_available %}disabled{% endif %}
               type="button">
         💸 Acheter maintenant
       </button>
+
+      <!-- Favoris -->
+      <button class="btn-wish pwish {% if product.id in wishlist_ids %}active{% endif %}"
+              onclick="toggleWish('{{ product.id }}', this)"
+              aria-label="Ajouter aux favoris"
+              type="button">♡</button>
     </div>
 
     <!-- Garanties -->

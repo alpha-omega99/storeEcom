@@ -6,6 +6,15 @@
 {% block content %}
 <h1 class="page-title">Finaliser ma <span>commande</span></h1>
 
+<!-- CORRECTION : Affichage alertes Django -->
+{% if messages %}
+<div class="messages">
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
 <form method="POST" action="{% url 'shop:checkout' %}" id="checkoutForm" novalidate>
   {% csrf_token %}
   <div class="checkout-layout">
@@ -117,7 +126,7 @@
         <div class="cf-title"><div class="cf-num">4</div> Personnalisation broderie</div>
         <div class="form-row full">
           <div class="form-group">
-            <label for="embroideryName">Prénom à broder *</label>
+            <label for="embroideryName">Prénom à broder</label>
             <input type="text" id="embroideryName" name="embroidery_name"
                    placeholder="Fatima, Ibrahim, Maïssa..." maxlength="20">
           </div>
@@ -131,7 +140,10 @@
         </div>
       </div>
 
-      <button type="submit" class="checkout-btn">✨ Confirmer ma commande</button>
+      <!-- CORRECTION : Affichage des erreurs de validation -->
+      <div id="formErrors" class="form-errors" style="display:none;color:#c0392b;margin-bottom:15px"></div>
+
+      <button type="submit" class="checkout-btn" id="submitBtn">✨ Confirmer ma commande</button>
     </div>
 
     <!-- RÉCAP -->
@@ -141,6 +153,11 @@
       <div class="recap-item">
         <div class="ri-img">{{ item.product.emoji }}</div>
         <div class="ri-name">{{ item.product.name }} ×{{ item.quantity }}</div>
+        <!-- CORRECTION : Affichage des variantes dans le récap -->
+        <div class="ri-opts" style="font-size:11px;color:var(--muted)">
+          {% if item.size %}{{ item.size }}{% endif %}
+          {% if item.embroidery_name %} · {{ item.embroidery_name }}{% endif %}
+        </div>
         <div class="ri-price">{{ item.line_total|floatformat:0 }} F</div>
       </div>
       {% endfor %}

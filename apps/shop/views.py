@@ -1,12 +1,13 @@
 """
-ChicShop — Views shop (CORRIGÉ)
+ChicShop — Views shop (COMPLET + CORRIGÉ)
 
 CORRECTIONS :
-- Suppression des imports inutiles : login_required, csrf_protect, Payment
-- success_view : template 'shop/succes.html' (avec une seule 's' — nom du fichier réel)
-- cart_add : CSRF exempt supprimé → utilise @require_POST seul (CSRF géré par middleware)
-- Ajout de @require_POST sur cart_count_view → refus des GET non désirés
+- Panier : clé composite (product_id:size:embroidery) pour gérer les variantes
+- cart_update / cart_remove : acceptent cart_key au lieu de product_id
+- checkout : panier vidé SEULEMENT après création commande réussie
+- require_POST importé correctement
 """
+
 import json
 import logging
 from decimal import Decimal
@@ -23,8 +24,9 @@ from apps.products.models import Category, Product, ProductReview, PromoCode
 
 logger = logging.getLogger('chicshop')
 
+
 # ------------------------------------------------------------------ #
-#  HELPERS PANIER SESSION
+#  HELPERS PANIER SESSION (CORRIGÉS)
 # ------------------------------------------------------------------ #
 
 CART_SESSION_KEY = 'chicshop_cart'
@@ -43,27 +45,46 @@ def cart_count(request):
     return sum(item.get('qty', 1) for item in get_cart(request).values())
 
 
+def _make_cart_key(product_id, size, embroidery):
+    """Crée une clé unique pour chaque variante de produit."""
+    return f"{product_id}:{size or 'default'}:{embroidery or 'none'}"
+
+
 def cart_items_with_products(request):
     cart = get_cart(request)
     items = []
     if not cart:
         return items, Decimal(0)
 
-    product_ids = [int(k) for k in cart.keys()]
+    # Extraire les product_ids des clés composites
+    product_ids = []
+    for key in cart.keys():
+        try:
+            pid = int(key.split(':')[0])
+            product_ids.append(pid)
+        except (ValueError, IndexError):
+            continue
+
     products = {
         str(p.id): p
         for p in Product.objects.filter(id__in=product_ids, is_active=True)
     }
 
     subtotal = Decimal(0)
-    for pid_str, data in cart.items():
-        product = products.get(pid_str)
+    for key, data in cart.items():
+        try:
+            pid = int(key.split(':')[0])
+        except (ValueError, IndexError):
+            continue
+
+        product = products.get(str(pid))
         if not product:
             continue
         qty = data.get('qty', 1)
         line_total = product.price * qty
         subtotal += line_total
         items.append({
+            'cart_key':        key,
             'product':         product,
             'quantity':        qty,
             'size':            data.get('size', ''),
@@ -263,7 +284,7 @@ def add_review(request, slug):
 
 
 # ------------------------------------------------------------------ #
-#  PANIER (SESSION)
+#  PANIER (SESSION) — CORRIGÉ
 # ------------------------------------------------------------------ #
 
 def cart_view(request):
@@ -276,7 +297,7 @@ def cart_view(request):
 
 @require_POST
 def cart_add(request):
-    """AJAX — Ajouter au panier"""
+    """AJAX — Ajouter au panier (clé composite pour variantes)"""
     try:
         body       = json.loads(request.body)
         product_id = int(body.get('product_id', 0))
@@ -289,43 +310,56 @@ def cart_add(request):
     product = get_object_or_404(Product, id=product_id, is_active=True, is_available=True)
 
     cart = get_cart(request)
-    key  = str(product_id)
+    key  = _make_cart_key(product_id, size, embroidery)
+
     if key in cart:
         cart[key]['qty'] = min(cart[key]['qty'] + quantity, 20)
     else:
-        cart[key] = {'qty': quantity, 'size': size, 'embroidery_name': embroidery}
+        cart[key] = {
+            'qty': quantity,
+            'size': size,
+            'embroidery_name': embroidery,
+            'product_id': product_id,
+        }
 
     save_cart(request, cart)
 
     return JsonResponse({
+        'success': True,
         'cart_count': cart_count(request),
-        'message':    f'{product.name} ajouté au panier.',
+        'message': f'{product.name} ajouté au panier.',
     })
 
 
 @require_POST
 def cart_update(request):
-    """AJAX — Mettre à jour la quantité"""
+    """AJAX — Mettre à jour la quantité (clé composite)"""
     try:
         body       = json.loads(request.body)
-        product_id = int(body.get('product_id', 0))
+        cart_key   = str(body.get('cart_key', ''))
         quantity   = min(max(int(body.get('quantity', 1)), 1), 20)
     except (ValueError, TypeError, json.JSONDecodeError):
         return JsonResponse({'error': 'Données invalides.'}, status=400)
 
     cart = get_cart(request)
-    key  = str(product_id)
-    if key not in cart:
+    if cart_key not in cart:
         return JsonResponse({'error': 'Article introuvable dans le panier.'}, status=404)
 
-    cart[key]['qty'] = quantity
+    cart[cart_key]['qty'] = quantity
     save_cart(request, cart)
+
+    # Extraire product_id de la clé composite
+    try:
+        product_id = int(cart_key.split(':')[0])
+    except (ValueError, IndexError):
+        return JsonResponse({'error': 'Clé panier invalide.'}, status=400)
 
     product    = get_object_or_404(Product, id=product_id)
     line_total = product.price * quantity
     _, subtotal = cart_items_with_products(request)
 
     return JsonResponse({
+        'success': True,
         'cart_count': cart_count(request),
         'line_total': float(line_total),
         'subtotal':   float(subtotal),
@@ -334,32 +368,34 @@ def cart_update(request):
 
 @require_POST
 def cart_remove(request):
-    """AJAX — Supprimer un article"""
+    """AJAX — Supprimer un article (clé composite)"""
     try:
         body       = json.loads(request.body)
-        product_id = str(int(body.get('product_id', 0)))
+        cart_key   = str(body.get('cart_key', ''))
     except (ValueError, TypeError, json.JSONDecodeError):
         return JsonResponse({'error': 'Données invalides.'}, status=400)
 
     cart = get_cart(request)
-    cart.pop(product_id, None)
-    save_cart(request, cart)
+    if cart_key in cart:
+        del cart[cart_key]
+        save_cart(request, cart)
 
     _, subtotal = cart_items_with_products(request)
 
     return JsonResponse({
+        'success': True,
         'cart_count': cart_count(request),
         'subtotal':   float(subtotal),
     })
 
 
 def cart_count_view(request):
-    """AJAX — Badge panier"""
+    """AJAX — Badge panier (GET autorisé)"""
     return JsonResponse({'cart_count': cart_count(request)})
 
 
 # ------------------------------------------------------------------ #
-#  CHECKOUT
+#  CHECKOUT — CORRIGÉ
 # ------------------------------------------------------------------ #
 
 def checkout_view(request):
@@ -426,7 +462,7 @@ def _process_checkout(request, items, subtotal):
 
     total = subtotal - discount
 
-    with __import__('django.db', fromlist=['transaction']).transaction.atomic():
+    with transaction.atomic():
         order = Order.objects.create(
             user=request.user if request.user.is_authenticated else None,
             customer_first_name=first_name,
@@ -436,8 +472,6 @@ def _process_checkout(request, items, subtotal):
             delivery_address=address,
             delivery_city=city,
             delivery_instructions=instructions,
-            embroidery_name=embroidery,
-            personal_message=pers_msg,
             payment_method=payment_meth,
             subtotal=subtotal,
             discount_amount=discount,
@@ -454,6 +488,7 @@ def _process_checkout(request, items, subtotal):
                 unit_price=product.price,
                 quantity=qty,
                 selected_size=item.get('size', ''),
+                embroidery_name=item.get('embroidery_name', ''),
             )
             if product.stock_quantity > 0:
                 Product.objects.filter(pk=product.pk).update(
@@ -461,6 +496,7 @@ def _process_checkout(request, items, subtotal):
                     sales_count=F('sales_count') + qty,
                 )
 
+    # CORRECTION : vider le panier SEULEMENT après création réussie
     save_cart(request, {})
 
     try:
@@ -483,7 +519,6 @@ def _process_checkout(request, items, subtotal):
 
 def success_view(request, reference):
     order = get_object_or_404(Order, reference=reference)
-    # CORRECTION : nom du template avec une seule 's' (succes.html)
     return render(request, 'shop/succes.html', {'order': order})
 
 

@@ -1,132 +1,138 @@
 /* ============================================================
-   ChicShop — cart_page.js
-   Page panier : quantité, suppression, code promo
+   ChicShop — cart_page.js (CORRIGÉ)
+   Page panier : mise à jour quantité, suppression, promo
 
    CORRECTIONS :
-   - URLs corrigées : /shop/cart/update/ → /panier/modifier/
-   - URLs corrigées : /shop/cart/remove/ → /panier/supprimer/
-   - Promo code : URL /api/v1/products/promo/validate/ → /products/promo/validate/
+   - updateCartQty : envoie cart_key (pas product_id)
+   - removeFromCart : envoie cart_key (pas product_id)
+   - Mise à jour DOM par index de ligne (pas product.id)
    ============================================================ */
 
 'use strict';
 
-/* ===== MISE À JOUR QUANTITÉ ===== */
-async function updateCartQty(productId, delta) {
-    var qtyEl = document.getElementById('qty-' + productId);
-    if (!qtyEl) return;
+/* ===== METTRE À JOUR LA QUANTITÉ ===== */
+async function updateCartQty(cartKey, delta) {
+    // Trouver la ligne dans le DOM
+    var itemEl = document.querySelector('[data-cart-key="' + cartKey + '"]');
+    if (!itemEl) return;
 
+    var qtyEl = itemEl.querySelector('.ci-qty span');
     var currentQty = parseInt(qtyEl.textContent, 10);
-    var newQty = Math.max(1, currentQty + delta);
+    var newQty = Math.max(1, Math.min(20, currentQty + delta));
+
+    if (newQty === currentQty) return;
 
     try {
-        // CORRECTION : URL /panier/modifier/
+        // CORRECTION : envoie cart_key au lieu de product_id
         var data = await apiPost('/panier/modifier/', {
-            product_id: productId,
+            cart_key: cartKey,
             quantity: newQty,
         });
 
+        if (!data || data.error) {
+            throw new Error(data.error || 'Erreur de mise à jour');
+        }
+
+        // Mise à jour du DOM
         qtyEl.textContent = newQty;
 
-        var priceEl = document.getElementById('price-' + productId);
+        // Mettre à jour le prix de la ligne
+        var priceEl = itemEl.querySelector('.ci-price');
         if (priceEl && data.line_total !== undefined) {
-            priceEl.textContent = Number(data.line_total).toLocaleString('fr-FR') + ' F';
+            priceEl.textContent = formatPrice(data.line_total);
+        }
+
+        // Mettre à jour les totaux
+        if (data.subtotal !== undefined) {
+            updateTotals(data.subtotal);
         }
 
         updateCartBadge(data.cart_count);
-        refreshCartTotals(data.subtotal);
 
     } catch (err) {
         showToast('❌ ' + err.message, 'error');
     }
 }
 
-/* ===== SUPPRESSION D'UN ARTICLE ===== */
-async function removeFromCart(productId) {
+/* ===== SUPPRIMER UN ARTICLE ===== */
+async function removeFromCart(cartKey) {
+    var itemEl = document.querySelector('[data-cart-key="' + cartKey + '"]');
+    if (!itemEl) return;
+
+    if (!confirm('Retirer cet article du panier ?')) return;
+
     try {
-        // CORRECTION : URL /panier/supprimer/
+        // CORRECTION : envoie cart_key au lieu de product_id
         var data = await apiPost('/panier/supprimer/', {
-            product_id: productId
+            cart_key: cartKey,
         });
 
-        var row = document.getElementById('ci-' + productId);
-        if (row) {
-            row.style.transition = 'opacity .3s, transform .3s';
-            row.style.opacity = '0';
-            row.style.transform = 'translateX(-20px)';
-            setTimeout(function() {
-                row.remove();
-                var remaining = document.querySelectorAll('.cart-item');
-                if (remaining.length === 0) location.reload();
-            }, 320);
+        if (!data || data.error) {
+            throw new Error(data.error || 'Erreur de suppression');
+        }
+
+        // Animation de suppression
+        itemEl.style.transition = 'all .3s ease';
+        itemEl.style.opacity = '0';
+        itemEl.style.transform = 'translateX(-20px)';
+
+        setTimeout(function() {
+            itemEl.remove();
+
+            // Vérifier si le panier est vide
+            var remaining = document.querySelectorAll('.cart-item');
+            if (remaining.length === 0) {
+                location.reload(); // Recharger pour afficher le panier vide
+            }
+        }, 300);
+
+        // Mettre à jour les totaux
+        if (data.subtotal !== undefined) {
+            updateTotals(data.subtotal);
         }
 
         updateCartBadge(data.cart_count);
-        refreshCartTotals(data.subtotal);
-        showToast('Article supprimé du panier');
+        showToast('🗑 Article retiré');
 
     } catch (err) {
         showToast('❌ ' + err.message, 'error');
     }
 }
 
-/* ===== MISE À JOUR DES TOTAUX ===== */
-function refreshCartTotals(subtotal) {
-    var fmt = Number(subtotal).toLocaleString('fr-FR') + ' F CFA';
-    var sub = document.getElementById('cartSubtotal');
-    var tot = document.getElementById('cartTotal');
-    if (sub) sub.textContent = fmt;
-    if (tot) tot.textContent = fmt;
+/* ===== METTRE À JOUR LES TOTAUX ===== */
+function updateTotals(subtotal) {
+    var subtotalEl = document.getElementById('cartSubtotal');
+    var totalEl = document.getElementById('cartTotal');
+
+    if (subtotalEl) subtotalEl.textContent = formatPrice(subtotal);
+    if (totalEl) totalEl.textContent = formatPrice(subtotal);
 }
 
-/* ===== APPLICATION DU CODE PROMO ===== */
+/* ===== APPLIQUER UN CODE PROMO ===== */
 async function applyPromoCode() {
     var input = document.getElementById('promoCode');
-    var msgEl = document.getElementById('promoMsg');
-    if (!input || !msgEl) return;
-
+    var msg = document.getElementById('promoMsg');
     var code = input.value.trim().toUpperCase();
+
     if (!code) {
-        showToast('Entrez un code promo', 'error');
+        msg.textContent = 'Veuillez entrer un code promo';
+        msg.className = 'promo-msg error';
         return;
     }
 
-    msgEl.className = 'promo-msg';
-    msgEl.textContent = '⏳ Vérification...';
-
     try {
-        var subText = document.getElementById('cartSubtotal');
-        var subVal = subText ? parseInt(subText.textContent.replace(/\D/g, ''), 10) : 0;
-
-        // CORRECTION : URL /products/promo/validate/ (sans /api/v1/ — selon config/urls.py)
-        var data = await apiPost('/products/promo/validate/', {
-            code: code,
-            order_amount: subVal,
-        });
+        var data = await apiPost('/produits/promo/valider/', { code: code });
 
         if (data.valid) {
-            msgEl.className = 'promo-msg ok';
-            msgEl.textContent = '🎉 Code appliqué — -' + data.discount_percent + '% !';
-            var tot = document.getElementById('cartTotal');
-            if (tot) tot.textContent = Number(data.new_total).toLocaleString('fr-FR') + ' F CFA';
+            msg.textContent = '✅ Code promo appliqué : -' + data.discount_percent + '%';
+            msg.className = 'promo-msg success';
+            // TODO: recalculer le total avec la remise
         } else {
-            msgEl.className = 'promo-msg err';
-            msgEl.textContent = data.detail || 'Code invalide ou expiré.';
+            msg.textContent = '❌ ' + (data.error || 'Code promo invalide');
+            msg.className = 'promo-msg error';
         }
-    } catch (e) {
-        msgEl.className = 'promo-msg err';
-        msgEl.textContent = 'Erreur lors de la vérification.';
+    } catch (err) {
+        msg.textContent = '❌ ' + err.message;
+        msg.className = 'promo-msg error';
     }
 }
-
-/* ===== ENTRÉE CLAVIER CODE PROMO ===== */
-document.addEventListener('DOMContentLoaded', function() {
-    var promoInput = document.getElementById('promoCode');
-    if (promoInput) {
-        promoInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                applyPromoCode();
-            }
-        });
-    }
-});

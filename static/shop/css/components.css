@@ -1045,19 +1045,19 @@
 }
 
 
-/* ===== LUXURY DYNAMIC BANNER ===== */
+/* ===== LUXURY DYNAMIC BANNER (WITHOUT IMAGES) ===== */
 
 .dynamic-banner-container {
     width: 100%;
     background-color: #111111;
-    /* Noir mat luxe */
+    /* Fond noir mat */
     color: #ffffff;
     overflow: hidden;
     user-select: none;
-    padding: 18px 0;
+    padding: 20px 0;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    margin-top: 5rem;
+    margin-top: 4rem;
 }
 
 .dynamic-banner-track {
@@ -1068,54 +1068,48 @@
 .dynamic-banner-group {
     display: flex;
     align-items: center;
-    animation: marquee 30s linear infinite;
-    padding-right: 2rem;
+    animation: marquee 25s linear infinite;
+    /* Vitesse fluide */
 }
 
 
-/* Style de chaque item (Icône + Texte) */
+/* Style de chaque élément de réassurance */
 
 .db-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    /* Espace entre l'icône et le texte */
+    gap: 14px;
+    /* Espace entre l'icône fine et ton texte */
     font-size: 13px;
     font-weight: 400;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
+    letter-spacing: 2px;
+    /* Lettres espacées style luxe */
     white-space: nowrap;
-    margin-right: 5rem;
-    /* Grand espace entre chaque bloc argument */
+    margin-right: 7rem;
+    /* Très grand espace de séparation entre les blocs */
 }
 
 
-/* Icônes SVG fines */
+/* Icônes de couleur Or/Doré */
 
 .db-icon {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     color: #d4af37;
-    /* Ta nuance d'or/doré pour rappeler ChicShop */
+    /* Couleur dorée signature ChicShop */
     flex-shrink: 0;
 }
 
 
-/* Style des images médias intercalées */
+/* Pause lors du survol ou appui long mobile */
 
-.db-img-thumb {
-    height: 35px;
-    width: 50px;
-    object-fit: cover;
-    border-radius: 4px;
-    margin-right: 5rem;
-    filter: grayscale(20%);
-    /* Donne un effet éditorial argentique très chic */
-    border: 1px solid rgba(255, 255, 255, 0.1);
+.dynamic-banner-container:hover .dynamic-banner-group {
+    animation-play-state: paused;
 }
 
 
-/* Défilement infini linéaire */
+/* Animation de défilement linéaire */
 
 @keyframes marquee {
     0% {
@@ -1123,6 +1117,24 @@
     }
     100% {
         transform: translateX(-100%);
+    }
+}
+
+
+/* Ajustements pour l'affichage Mobile */
+
+@media (max-width: 768px) {
+    .dynamic-banner-container {
+        padding: 14px 0;
+    }
+    .db-item {
+        font-size: 11px;
+        gap: 8px;
+        margin-right: 4rem;
+    }
+    .db-icon {
+        width: 18px;
+        height: 18px;
     }
 }
 
