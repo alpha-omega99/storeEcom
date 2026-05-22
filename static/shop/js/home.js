@@ -48,3 +48,74 @@
         }, 400);
     }, 3000);
 })();
+
+document.addEventListener('DOMContentLoaded', () => {
+    const track = document.querySelector('.carousel-track');
+    const slides = Array.from(track.children);
+    const nextButton = document.querySelector('.next-btn');
+    const prevButton = document.querySelector('.prev-btn');
+    const dotsNav = document.querySelector('.carousel-nav');
+    const dots = Array.from(dotsNav.children);
+
+    let currentIndex = 0;
+
+    // Fonction pour obtenir le nombre de slides visibles selon l'écran
+    const getVisibleSlidesCount = () => {
+        if (window.innerWidth >= 1024) return 4;
+        if (window.innerWidth >= 600) return 2;
+        return 1;
+    };
+
+    // Déplace le carrousel à la bonne position
+    const moveToSlide = (index) => {
+        const slideWidth = slides[0].getBoundingClientRect().width;
+        track.style.transform = `translateX(-${index * slideWidth}px)`;
+
+        // Mise à jour des classes actives pour les dots
+        dots.forEach(dot => dot.classList.remove('active'));
+        if (dots[index]) dots[index].classList.add('active');
+
+        currentIndex = index;
+    };
+
+    // Gestion du clic sur le bouton Suivant
+    nextButton.addEventListener('click', () => {
+        const visibleSlides = getVisibleSlidesCount();
+        const maxIndex = slides.length - visibleSlides;
+
+        if (currentIndex < maxIndex) {
+            moveToSlide(currentIndex + 1);
+        } else {
+            moveToSlide(0); // Boucle et revient au début
+        }
+    });
+
+    // Gestion du clic sur le bouton Précédent
+    prevButton.addEventListener('click', () => {
+        if (currentIndex > 0) {
+            moveToSlide(currentIndex - 1);
+        } else {
+            const visibleSlides = getVisibleSlidesCount();
+            moveToSlide(slides.length - visibleSlides); // Va à la fin
+        }
+    });
+
+    // Navigation via les points (dots)
+    dotsNav.addEventListener('click', e => {
+        const targetDot = e.target.closest('button');
+        if (!targetDot) return;
+
+        const targetIndex = dots.indexOf(targetDot);
+        const visibleSlides = getVisibleSlidesCount();
+
+        // Empêche de scroller dans le vide sur desktop
+        if (targetIndex <= slides.length - visibleSlides) {
+            moveToSlide(targetIndex);
+        }
+    });
+
+    // Ajustement de la position lors du redimensionnement de la fenêtre
+    window.addEventListener('resize', () => {
+        moveToSlide(0);
+    });
+});

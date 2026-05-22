@@ -1140,35 +1140,145 @@
     }
 }
 
-
-/* =========================
-   BANNIÈRES HOME
-========================= */
-
-.custom-banners {
-    width: 100%;
-    padding: 40px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 35px;
+:root {
+    --carousel-transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-.banner-container {
+.carousel-container {
+    position: relative;
     width: 100%;
-    border-radius: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
     overflow: hidden;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+    padding: 20px 0;
 }
 
-.banner-container img {
+.carousel-track-container {
+    overflow: hidden;
     width: 100%;
-    display: block;
-    object-fit: cover;
-    transition: transform 0.4s ease;
+    padding: 10px;
 }
 
-.banner-container:hover img {
-    transform: scale(1.02);
+.carousel-track {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    transition: var(--carousel-transition);
+}
+
+
+/* Style des cartes individuelles */
+
+.carousel-slide {
+    flex: 0 0 100%;
+    /* Par défaut 1 carte par écran sur mobile */
+    box-sizing: border-box;
+    padding: 0 10px;
+    display: flex;
+    justify-content: center;
+}
+
+.carousel-slide img {
+    width: 100%;
+    max-width: 320px;
+    /* Largeur maximale pour garder le format vertical "story" */
+    height: auto;
+    border-radius: 24px;
+    /* Coins arrondis fidèles à la maquette */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    object-fit: cover;
+}
+
+
+/* --- Boutons Flèches --- */
+
+.carousel-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.85);
+    border: none;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    transition: background 0.3s, opacity 0.3s;
+}
+
+.carousel-button:hover {
+    background: #ffffff;
+}
+
+.carousel-button svg {
+    width: 24px;
+    height: 24px;
+    fill: #222;
+}
+
+.prev-btn {
+    left: 15px;
+}
+
+.next-btn {
+    right: 15px;
+}
+
+
+/* --- Indicateurs (Dots) --- */
+
+.carousel-nav {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.indicator {
+    border: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #ccc;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+.indicator.active {
+    background-color: #5c0f26;
+    /* Rappel subtil du ton bordeaux/or de la marque */
+    transform: scale(1.2);
+}
+
+
+/* --- Responsive Design --- */
+
+
+/* Tablettes : 2 cartes visibles */
+
+@media (min-width: 600px) {
+    .carousel-slide {
+        flex: 0 0 50%;
+    }
+}
+
+
+/* Desktops : Écran large affichant les 4 cartes en ligne comme sur l'image */
+
+@media (min-width: 1024px) {
+    .carousel-slide {
+        flex: 0 0 25%;
+    }
+    /* On cache les flèches si tout tient à l'écran sur desktop */
+    .carousel-button,
+    .carousel-nav {
+        display: none;
+    }
 }
 
 

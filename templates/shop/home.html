@@ -270,16 +270,38 @@
   </div>
 </div>
 
-<!-- SECTION BANNIÈRES -->
-<section class="custom-banners">
-    <div class="banner-container">
-        <img src="{% static 'static/shop/images/banniere.png' %}" alt="Bannière tapis personnalisés">
+<div class="carousel-container">
+    <div class="carousel-track-container">
+        <ul class="carousel-track">
+            <li class="carousel-slide active">
+                <img src="{% static 'shop/images/bantapis3.png' %}" alt="Un tapis de prière qui vous ressemble">
+            </li>
+            <li class="carousel-slide">
+                <img src="{% static 'shop/images/bantapis2.png' %}" alt="La finesse de l'artisanat. Personnalisez votre tapis">
+            </li>
+            <li class="carousel-slide">
+                <img src="{% static 'shop/images/tapisban.png' %}" alt="Une collection unique pour toute la famille. À partir de 8 990 F CFA">
+            </li>
+            <li class="carousel-slide">
+                <img src="{% static 'shop/images/banntapis.png' %}" alt="Vivez un moment de paix unique">
+            </li>
+        </ul>
     </div>
 
-    <div class="banner-container">
-        <img src="{% static 'static/shop/images/tapis_bannier.png' %}" alt="Bannière tapis de prière">
+    <button class="carousel-button prev-btn" aria-label="Précédent">
+        <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+    </button>
+    <button class="carousel-button next-btn" aria-label="Suivant">
+        <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+    </button>
+
+    <div class="carousel-nav">
+        <button class="indicator active"></button>
+        <button class="indicator"></button>
+        <button class="indicator"></button>
+        <button class="indicator"></button>
     </div>
-</section>
+</div>
 
 <!-- ===== TÉMOIGNAGES ===== -->
 <section class="section-block" aria-labelledby="testi-title">
