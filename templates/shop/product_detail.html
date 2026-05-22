@@ -121,6 +121,24 @@
     </div>
     {% endif %}
 
+    <!-- Message personnalisé (packs premium >= 11 000 F CFA) -->
+    {% if product.allows_personal_message %}
+    <div class="name-input-block" id="personalMsgBlock">
+      <label for="personalMsgInput">
+        ✉️ Message personnalisé brodé
+        <span style="color:var(--muted);font-size:11px;font-weight:400">— optionnel</span>
+      </label>
+      <input type="text"
+             id="personalMsgInput"
+             placeholder="Ex : Qu'Allah te rapproche de Lui... ({{ product.max_message_chars|default:100 }} car. max)"
+             maxlength="{{ product.max_message_chars|default:100 }}"
+             style="margin-bottom:4px">
+      <small style="color:var(--muted);font-size:11px;display:block">
+        Ce message sera brodé sur votre tapis avec la même calligraphie dorée.
+      </small>
+    </div>
+    {% endif %}
+
     <!-- Quantité -->
     <div class="qty-row">
       <span class="qty-label">Quantité</span>

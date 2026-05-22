@@ -71,6 +71,16 @@ class Product(models.Model):
     allows_embroidery = models.BooleanField(default=True)
     max_embroidery_chars = models.PositiveSmallIntegerField(default=20)
 
+    # Message personnalisé (disponible pour les packs >= 11 000 F)
+    allows_personal_message = models.BooleanField(
+        default=False,
+        help_text="Activer pour les packs premium (Écrin de Sérénité, Héritage Royal...)"
+    )
+    max_message_chars = models.PositiveSmallIntegerField(
+        default=100,
+        help_text="Nombre max de caractères pour le message personnalisé"
+    )
+
     # Présentation
     badge = models.CharField(max_length=10, choices=Badge.choices, blank=True)
     emoji = models.CharField(max_length=10, blank=True)
@@ -81,7 +91,6 @@ class Product(models.Model):
     included_items = models.TextField(blank=True, null=True, help_text="Éléments inclus dans ce produit (ex: 'Tapis de prière, Chapelet, Sac de transport')")
 
     # Tailles disponibles
-    personne=(())
     # Tu peux conserver available_sizes pour plus tard ou utiliser directement ce format :
     target_options = models.JSONField(
         default=list, 

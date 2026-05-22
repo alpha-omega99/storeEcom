@@ -60,8 +60,9 @@ def cart_items_with_products(request):
     product_ids = []
     for key in cart.keys():
         try:
-            pid = int(key.split(':')[0])
-            product_ids.append(pid)
+            pid = str(key.split(':')[0]).strip()
+            if pid:
+                product_ids.append(pid)
         except (ValueError, IndexError):
             continue
 
@@ -73,11 +74,11 @@ def cart_items_with_products(request):
     subtotal = Decimal(0)
     for key, data in cart.items():
         try:
-            pid = int(key.split(':')[0])
+            pid = str(key.split(':')[0]).strip()
         except (ValueError, IndexError):
             continue
 
-        product = products.get(str(pid))
+        product = products.get(pid)
         if not product:
             continue
         qty = data.get('qty', 1)
@@ -89,6 +90,7 @@ def cart_items_with_products(request):
             'quantity':        qty,
             'size':            data.get('size', ''),
             'embroidery_name': data.get('embroidery_name', ''),
+            'personal_message': data.get('personal_message', ''),
             'line_total':      line_total,
         })
     return items, subtotal
@@ -300,10 +302,13 @@ def cart_add(request):
     """AJAX — Ajouter au panier (clé composite pour variantes)"""
     try:
         body       = json.loads(request.body)
-        product_id = int(body.get('product_id', 0))
+        product_id = str(body.get('product_id', '')).strip()
         quantity   = min(int(body.get('quantity', 1)), 20)
         size       = str(body.get('selected_size', ''))[:50]
         embroidery = str(body.get('embroidery_name', ''))[:20]
+        personal_message = str(body.get('personal_message', ''))[:200]
+        if not product_id:
+            return JsonResponse({'error': 'product_id manquant.'}, status=400)
     except (ValueError, TypeError, json.JSONDecodeError):
         return JsonResponse({'error': 'Données invalides.'}, status=400)
 
@@ -319,6 +324,7 @@ def cart_add(request):
             'qty': quantity,
             'size': size,
             'embroidery_name': embroidery,
+            'personal_message': personal_message,
             'product_id': product_id,
         }
 
@@ -559,10 +565,13 @@ def wishlist_toggle(request):
     """AJAX — Toggle favori"""
     try:
         body       = json.loads(request.body)
-        product_id = int(body.get('product_id', 0))
+        product_id = str(body.get('product_id', '')).strip()
         action     = body.get('action', 'add')
     except (ValueError, TypeError, json.JSONDecodeError):
         return JsonResponse({'error': 'Données invalides.'}, status=400)
+
+    if not product_id:
+        return JsonResponse({'error': 'product_id manquant.'}, status=400)
 
     wishlist = set(request.session.get('chicshop_wishlist', []))
     if action == 'add':

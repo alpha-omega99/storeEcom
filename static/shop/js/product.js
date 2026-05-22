@@ -1,24 +1,22 @@
 /* ============================================================
-   ChicShop — product.js (CORRIGÉ)
+   ChicShop — product.js
    Page détail produit
 
-   CORRECTIONS :
-   - buyNow() : vérification de la réponse avant redirection
-   - buyNow() : vérification taille sélectionnée obligatoire
-   - buyNow() : mise à jour badge panier avant redirection
-   - addToCartFromDetail() : vérification taille + gestion erreur améliorée
-   - Sélection taille par défaut au DOMContentLoaded
+   CORRECTIONS FINALES :
+   1. getCsrfToken() vient de utils.js — pas redéfini ici
+   2. personal_message inclus dans addToCartFromDetail et buyNow
+   3. UUID passé comme string (pas int)
+   4. Validation prénom obligatoire si allows_embroidery
    ============================================================ */
 
 'use strict';
 
-let _pdQty = 1;
+var _pdQty = 1;
 
-/* ===== GESTION DES ONGLETS ===== */
+/* ===== ONGLETS ===== */
 function switchTab(el, contentId) {
-    const infoBlock = el.closest('.pd-info');
+    var infoBlock = el.closest('.pd-info');
     if (!infoBlock) return;
-
     infoBlock.querySelectorAll('.pd-tab').forEach(function(t) {
         t.classList.remove('active');
         t.setAttribute('aria-selected', 'false');
@@ -26,18 +24,15 @@ function switchTab(el, contentId) {
     infoBlock.querySelectorAll('.pd-tab-content').forEach(function(c) {
         c.classList.remove('active');
     });
-
     el.classList.add('active');
     el.setAttribute('aria-selected', 'true');
     var content = document.getElementById(contentId);
     if (content) content.classList.add('active');
 }
 
-/* ===== SÉLECTION MINIATURE ===== */
+/* ===== MINIATURE ===== */
 function selectThumb(el, imgUrl) {
-    document.querySelectorAll('.pd-thumb').forEach(function(t) {
-        t.classList.remove('sel');
-    });
+    document.querySelectorAll('.pd-thumb').forEach(function(t) { t.classList.remove('sel'); });
     el.classList.add('sel');
     if (imgUrl) {
         var main = document.getElementById('pdMainImgEl');
@@ -45,6 +40,12 @@ function selectThumb(el, imgUrl) {
     }
 }
 
+/* ===== TAILLE ===== */
+function selectSize(el) {
+    var parent = el.closest('.size-chips');
+    if (parent) parent.querySelectorAll('.schip').forEach(function(s) { s.classList.remove('sel'); });
+    el.classList.add('sel');
+}
 
 /* ===== QUANTITÉ ===== */
 function changeQty(delta) {
@@ -53,24 +54,39 @@ function changeQty(delta) {
     if (el) el.textContent = _pdQty;
 }
 
-/* ===== APERÇU BRODERIE EN TEMPS RÉEL ===== */
+/* ===== APERÇU BRODERIE ===== */
 function updateEmbroideryPreview(value) {
     var preview = document.getElementById('pdLiveName') || document.getElementById('pdNamePreview');
     if (!preview) return;
-    var text = value.trim() || 'Votre prénom';
-    preview.textContent = text;
+    preview.textContent = value.trim() || 'Votre prénom';
     preview.style.transform = 'scale(1.04)';
-    setTimeout(function() {
-        preview.style.transform = 'scale(1)';
-    }, 200);
+    setTimeout(function() { preview.style.transform = 'scale(1)'; }, 200);
 }
 
-
-/* ===== AJOUTER AU PANIER DEPUIS LA PAGE DÉTAIL ===== */
-async function addToCartFromDetail(productId, name, price, emoji, btn) {
+/* ===== RÉCUPÉRER LES CHAMPS DE PERSONNALISATION ===== */
+function getPersonalisationData() {
     var embroideryEl = document.getElementById('embroideryInput');
-    var embroidery = embroideryEl ? embroideryEl.value.trim() : '';
+    var personalMsgEl = document.getElementById('personalMsgInput');
+
+    return {
+        embroidery: embroideryEl ? embroideryEl.value.trim() : '',
+        personalMessage: personalMsgEl ? personalMsgEl.value.trim() : '',
+    };
+}
+
+/* ===== AJOUTER AU PANIER ===== */
+async function addToCartFromDetail(productId, name, price, emoji, btn) {
+    var data = getPersonalisationData();
     var originalText = btn ? btn.textContent : '🛒 Ajouter au panier';
+
+    // Validation : prénom obligatoire si le champ existe
+    var embroideryEl = document.getElementById('embroideryInput');
+    if (embroideryEl && !data.embroidery) {
+        embroideryEl.classList.add('error');
+        showToast('⚠️ Veuillez entrer un prénom à personnaliser', 'error');
+        embroideryEl.focus();
+        return;
+    }
 
     if (btn) {
         btn.disabled = true;
@@ -78,26 +94,21 @@ async function addToCartFromDetail(productId, name, price, emoji, btn) {
     }
 
     try {
-        var data = await apiPost('/panier/ajouter/', {
-            product_id: productId,
+        var res = await apiPost('/panier/ajouter/', {
+            product_id: productId, // UUID string
             quantity: _pdQty,
-            embroidery_name: embroidery,
+            embroidery_name: data.embroidery,
+            personal_message: data.personalMessage,
         });
 
-        // VÉRIFICATION : s'assurer que l'ajout a bien fonctionné
-        if (!data || data.error) {
-            throw new Error(data.error || "Erreur lors de l'ajout au panier ");
-        }
-
-        updateCartBadge(data.cart_count);
+        updateCartBadge(res.cart_count);
         showToast('✅ ' + name + ' ajouté au panier !');
 
         if (btn) {
             btn.style.background = '#28a745';
-            btn.style.color = '#ffffff';
+            btn.style.color = '#fff';
             btn.textContent = '✅ Ajouté !';
         }
-
         setTimeout(function() {
             if (btn) {
                 btn.style.background = '';
@@ -118,32 +129,32 @@ async function addToCartFromDetail(productId, name, price, emoji, btn) {
 
 /* ===== ACHETER MAINTENANT ===== */
 async function buyNow(productId, name, price, emoji, btn) {
+    var data = getPersonalisationData();
+
+    // Validation : prénom obligatoire si le champ existe
     var embroideryEl = document.getElementById('embroideryInput');
-    var embroidery = embroideryEl ? embroideryEl.value.trim() : '';
+    if (embroideryEl && !data.embroidery) {
+        embroideryEl.classList.add('error');
+        showToast('⚠️ Veuillez entrer un prénom à personnaliser', 'error');
+        embroideryEl.focus();
+        return;
+    }
 
     if (btn) {
         btn.disabled = true;
-        btn.textContent = '⏳ Ajout...';
+        btn.textContent = '⏳ Préparation...';
     }
 
     try {
-        var data = await apiPost('/panier/ajouter/', {
-            product_id: productId,
+        var res = await apiPost('/panier/ajouter/', {
+            product_id: productId, // UUID string
             quantity: _pdQty,
-            embroidery_name: embroidery,
+            embroidery_name: data.embroidery,
+            personal_message: data.personalMessage,
         });
 
-        // VÉRIFICATION CRITIQUE : s'assurer que l'ajout a fonctionné
-        if (!data || data.error) {
-            throw new Error(data.error || "Erreur lors de l'ajout au panier ");
-        }
-
-        // Mettre à jour le badge AVANT de rediriger
-        if (data.cart_count !== undefined) {
-            updateCartBadge(data.cart_count);
-        }
-
-        // Redirection SEULEMENT si succès confirmé
+        updateCartBadge(res.cart_count);
+        // Redirection seulement si succès
         window.location.href = '/commander/';
 
     } catch (err) {
@@ -155,9 +166,17 @@ async function buyNow(productId, name, price, emoji, btn) {
     }
 }
 
-/* ===== INIT PAGE DÉTAIL ===== */
+/* ===== INIT ===== */
 document.addEventListener('DOMContentLoaded', function() {
-    // Activer aria-selected sur le premier onglet
+    // Premier onglet actif
     var firstTab = document.querySelector('.pd-tab');
     if (firstTab) firstTab.setAttribute('aria-selected', 'true');
+
+    // Retirer l'erreur quand l'utilisateur commence à taper
+    var embroideryEl = document.getElementById('embroideryInput');
+    if (embroideryEl) {
+        embroideryEl.addEventListener('input', function() {
+            this.classList.remove('error');
+        });
+    }
 });

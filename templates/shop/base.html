@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="{% static 'shop/css/base.css' %}">
   <link rel="stylesheet" href="{% static 'shop/css/components.css' %}">
   {% block extra_css %}{% endblock %}
+  {% csrf_token %}
 </head>
 <body>
 
