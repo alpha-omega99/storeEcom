@@ -40,12 +40,6 @@ function selectThumb(el, imgUrl) {
     }
 }
 
-/* ===== TAILLE ===== */
-function selectSize(el) {
-    var parent = el.closest('.size-chips');
-    if (parent) parent.querySelectorAll('.schip').forEach(function(s) { s.classList.remove('sel'); });
-    el.classList.add('sel');
-}
 
 /* ===== QUANTITÉ ===== */
 function changeQty(delta) {
