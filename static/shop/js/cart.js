@@ -16,7 +16,6 @@ async function addToCart(productId, name, price, emoji) {
         var data = await apiPost('/panier/ajouter/', {
             product_id: productId,
             quantity: 1,
-            selected_size: '',
             embroidery_name: '',
         });
 

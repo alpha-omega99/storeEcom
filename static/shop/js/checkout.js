@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const emb = document.getElementById('embroideryName');
         if (emb && emb.value.trim()) {
             if (!/^[\w\sÀ-ÿ\-']+$/u.test(emb.value.trim())) {
-                markError(emb, 'Le prénom brodé ne peut contenir que des lettres');
+                markError(emb, 'Le prénom personnalisé ne peut contenir que des lettres');
                 valid = false;
             } else clearError(emb);
         }

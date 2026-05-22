@@ -79,6 +79,9 @@
                 <option value="Treichville">Treichville</option>
                 <option value="Koumassi">Koumassi</option>
                 <option value="Bingerville">Bingerville</option>
+                <option value="EXpédition">EXpédition</option>
+
+
               {% endfor %}
             </select>
           </div>
@@ -121,7 +124,7 @@
         </div>
       </div>
 
-      <!-- STEP 4 : Broderie -->
+      {% comment %} <!-- STEP 4 : Broderie -->
       <div class="cf-section">
         <div class="cf-title"><div class="cf-num">4</div> Personnalisation broderie</div>
         <div class="form-row full">
@@ -140,11 +143,10 @@
         </div>
       </div>
 
-      <!-- CORRECTION : Affichage des erreurs de validation -->
       <div id="formErrors" class="form-errors" style="display:none;color:#c0392b;margin-bottom:15px"></div>
 
       <button type="submit" class="checkout-btn" id="submitBtn">✨ Confirmer ma commande</button>
-    </div>
+    </div> {% endcomment %}
 
     <!-- RÉCAP -->
     <div class="order-recap">
@@ -155,7 +157,6 @@
         <div class="ri-name">{{ item.product.name }} ×{{ item.quantity }}</div>
         <!-- CORRECTION : Affichage des variantes dans le récap -->
         <div class="ri-opts" style="font-size:11px;color:var(--muted)">
-          {% if item.size %}{{ item.size }}{% endif %}
           {% if item.embroidery_name %} · {{ item.embroidery_name }}{% endif %}
         </div>
         <div class="ri-price">{{ item.line_total|floatformat:0 }} F</div>

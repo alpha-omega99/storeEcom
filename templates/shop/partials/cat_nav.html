@@ -2,7 +2,7 @@
 <nav class="cat-nav" aria-label="Catégories">
   <div class="cat-nav-inner">
     <a class="cat-btn {% if current_cat == 'all' or not current_cat %}active{% endif %}"
-       href="{% url 'shop:catalog' %}">🏠 Tout</a>
+       href="{% url 'shop:home' %}">🏠 Accueil</a>
     {% for cat in categories %}
     <a class="cat-btn {% if current_cat == cat.slug %}active{% endif %}"
        href="{% url 'shop:catalog_category' cat.slug %}">

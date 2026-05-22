@@ -32,7 +32,7 @@
 
 /* ===== ROTATION PRÉNOMS HERO ===== */
 (function() {
-    const heroNames = ['Fatima', 'Ibrahim', 'Maïssa', 'Aminata', 'Mohamed', 'Aïcha', 'Kadiatou'];
+    const heroNames = ['Fatima', 'Ibrahim', 'Maïssa', 'Aminata', 'Mohamed', 'Aïcha', 'Kadiatou', 'Alpha'];
     let idx = 0;
 
     setInterval(() => {

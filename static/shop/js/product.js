@@ -45,16 +45,6 @@ function selectThumb(el, imgUrl) {
     }
 }
 
-/* ===== SÉLECTION TAILLE ===== */
-function selectSize(el) {
-    var parent = el.closest('.size-chips');
-    if (parent) {
-        parent.querySelectorAll('.schip').forEach(function(s) {
-            s.classList.remove('sel');
-        });
-    }
-    el.classList.add('sel');
-}
 
 /* ===== QUANTITÉ ===== */
 function changeQty(delta) {
@@ -75,31 +65,11 @@ function updateEmbroideryPreview(value) {
     }, 200);
 }
 
-/* ===== VÉRIFICATION TAILLE ===== */
-function _getSelectedSize() {
-    var sizeEl = document.querySelector('.schip.sel');
-    return sizeEl ? (sizeEl.dataset.size || sizeEl.textContent.trim()) : '';
-}
-
-function _hasSizesAvailable() {
-    return document.querySelectorAll('.schip').length > 0;
-}
-
-function _validateSize() {
-    if (_hasSizesAvailable() && !_getSelectedSize()) {
-        showToast('❌ Veuillez sélectionner une taille', 'error');
-        return false;
-    }
-    return true;
-}
 
 /* ===== AJOUTER AU PANIER DEPUIS LA PAGE DÉTAIL ===== */
 async function addToCartFromDetail(productId, name, price, emoji, btn) {
-    if (!_validateSize()) return;
-
     var embroideryEl = document.getElementById('embroideryInput');
     var embroidery = embroideryEl ? embroideryEl.value.trim() : '';
-    var size = _getSelectedSize();
     var originalText = btn ? btn.textContent : '🛒 Ajouter au panier';
 
     if (btn) {
@@ -112,95 +82,82 @@ async function addToCartFromDetail(productId, name, price, emoji, btn) {
             product_id: productId,
             quantity: _pdQty,
             embroidery_name: embroidery,
-            selected_size: size,
         });
 
         // VÉRIFICATION : s'assurer que l'ajout a bien fonctionné
         if (!data || data.error) {
-            throw new Error(data.error || 'Erreur lors de l'
-                ajout au panier ');
-            }
-
-            updateCartBadge(data.cart_count);
-            showToast('✅ ' + name + ' ajouté au panier !');
-
-            if (btn) {
-                btn.style.background = '#28a745';
-                btn.style.color = '#ffffff';
-                btn.textContent = '✅ Ajouté !';
-            }
-
-            setTimeout(function() {
-                if (btn) {
-                    btn.style.background = '';
-                    btn.style.color = '';
-                    btn.textContent = originalText;
-                    btn.disabled = false;
-                }
-            }, 2000);
-
-        } catch (err) {
-            showToast('❌ ' + err.message, 'error');
-            if (btn) {
-                btn.disabled = false;
-                btn.textContent = originalText;
-            }
+            throw new Error(data.error || "Erreur lors de l'ajout au panier ");
         }
-    }
 
-    /* ===== ACHETER MAINTENANT ===== */
-    async function buyNow(productId, name, price, emoji, btn) {
-        if (!_validateSize()) return;
-
-        var embroideryEl = document.getElementById('embroideryInput');
-        var embroidery = embroideryEl ? embroideryEl.value.trim() : '';
-        var size = _getSelectedSize();
+        updateCartBadge(data.cart_count);
+        showToast('✅ ' + name + ' ajouté au panier !');
 
         if (btn) {
-            btn.disabled = true;
-            btn.textContent = '⏳ Ajout...';
+            btn.style.background = '#28a745';
+            btn.style.color = '#ffffff';
+            btn.textContent = '✅ Ajouté !';
         }
 
-        try {
-            var data = await apiPost('/panier/ajouter/', {
-                product_id: productId,
-                quantity: _pdQty,
-                embroidery_name: embroidery,
-                selected_size: size,
-            });
-
-            // VÉRIFICATION CRITIQUE : s'assurer que l'ajout a fonctionné
-            if (!data || data.error) {
-                throw new Error(data.error || 'Erreur lors de l'
-                    ajout au panier ');
-                }
-
-                // Mettre à jour le badge AVANT de rediriger
-                if (data.cart_count !== undefined) {
-                    updateCartBadge(data.cart_count);
-                }
-
-                // Redirection SEULEMENT si succès confirmé
-                window.location.href = '/commander/';
-
-            } catch (err) {
-                showToast('❌ ' + err.message, 'error');
-                if (btn) {
-                    btn.disabled = false;
-                    btn.textContent = '💸 Acheter maintenant';
-                }
+        setTimeout(function() {
+            if (btn) {
+                btn.style.background = '';
+                btn.style.color = '';
+                btn.textContent = originalText;
+                btn.disabled = false;
             }
+        }, 2000);
+
+    } catch (err) {
+        showToast('❌ ' + err.message, 'error');
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = originalText;
         }
+    }
+}
 
-        /* ===== INIT PAGE DÉTAIL ===== */
-        document.addEventListener('DOMContentLoaded', function() {
-            // Activer aria-selected sur le premier onglet
-            var firstTab = document.querySelector('.pd-tab');
-            if (firstTab) firstTab.setAttribute('aria-selected', 'true');
+/* ===== ACHETER MAINTENANT ===== */
+async function buyNow(productId, name, price, emoji, btn) {
+    var embroideryEl = document.getElementById('embroideryInput');
+    var embroidery = embroideryEl ? embroideryEl.value.trim() : '';
 
-            // Sélectionner la première taille disponible par défaut
-            var chips = document.querySelectorAll('.schip');
-            if (chips.length > 0) {
-                chips[0].classList.add('sel');
-            }
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ Ajout...';
+    }
+
+    try {
+        var data = await apiPost('/panier/ajouter/', {
+            product_id: productId,
+            quantity: _pdQty,
+            embroidery_name: embroidery,
         });
+
+        // VÉRIFICATION CRITIQUE : s'assurer que l'ajout a fonctionné
+        if (!data || data.error) {
+            throw new Error(data.error || "Erreur lors de l'ajout au panier ");
+        }
+
+        // Mettre à jour le badge AVANT de rediriger
+        if (data.cart_count !== undefined) {
+            updateCartBadge(data.cart_count);
+        }
+
+        // Redirection SEULEMENT si succès confirmé
+        window.location.href = '/commander/';
+
+    } catch (err) {
+        showToast('❌ ' + err.message, 'error');
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '💸 Acheter maintenant';
+        }
+    }
+}
+
+/* ===== INIT PAGE DÉTAIL ===== */
+document.addEventListener('DOMContentLoaded', function() {
+    // Activer aria-selected sur le premier onglet
+    var firstTab = document.querySelector('.pd-tab');
+    if (firstTab) firstTab.setAttribute('aria-selected', 'true');
+});
