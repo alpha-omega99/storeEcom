@@ -1,116 +1,118 @@
 {% extends 'shop/base.html' %}
 {% load static %}
-{% block title %}Mon Espace — ChicShop{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'shop/css/account.css' %}">{% endblock %}
+
+{% block title %}Mon Compte — ChicShop{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'shop/css/_atelier-tokens.css' %}">
+<link rel="stylesheet" href="{% static 'shop/css/account.css' %}">
+{% endblock %}
 
 {% block content %}
-<h1 class="page-title">Mon <span>Espace</span></h1>
+<h1 class="page-title">Mon <span>compte</span></h1>
 
 {% if not request.user.is_authenticated %}
 <div class="cart-empty">
-  <div class="icon">👤</div>
-  <h3>Connectez-vous pour accéder à votre compte</h3>
-  <div style="display:flex;gap:12px;justify-content:center;margin-top:1.5rem;flex-wrap:wrap">
-    <a href="{% url 'accounts:login' %}" class="btn-gold">Se connecter</a>
-    <a href="{% url 'accounts:register' %}" class="btn-ghost" style="background:var(--rose);color:#fff;border:none">Créer un compte</a>
+  <div class="icon">✦</div>
+  <h3>Connectez-vous à votre compte</h3>
+  <p>Retrouvez vos commandes, vos adresses et vos pièces favorites.</p>
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+    <a href="{% url 'accounts:login' %}" class="btn-ac">Se connecter</a>
+    <a href="{% url 'accounts:register' %}" class="btn-ac ghost">Créer un compte</a>
   </div>
 </div>
 {% else %}
+
 <div class="account-layout">
-  <!-- MENU COMPTE -->
+
   <aside class="account-menu">
     <div class="am-header">
       <div class="am-avatar">{{ request.user.first_name|first|upper }}</div>
-      <div class="am-name">{{ request.user.get_full_name }}</div>
+      <div class="am-name">{{ request.user.get_full_name|default:request.user.username }}</div>
       <div class="am-email">{{ request.user.email }}</div>
     </div>
-    <a class="am-item {% if active_tab == 'orders' %}active{% endif %}"
-       href="{% url 'shop:account' %}?tab=orders"><span class="am-icon">📦</span> Mes commandes</a>
+
+    <a class="am-item {% if active_tab == 'orders' or not active_tab %}active{% endif %}"
+       href="{% url 'shop:account' %}?tab=orders">
+      <span class="am-icon">◇</span> Mes commandes
+    </a>
     <a class="am-item {% if active_tab == 'profile' %}active{% endif %}"
-       href="{% url 'shop:account' %}?tab=profile"><span class="am-icon">👤</span> Mon profil</a>
-    <a class="am-item" href="{% url 'shop:wishlist' %}"><span class="am-icon">♡</span> Mes favoris</a>
+       href="{% url 'shop:account' %}?tab=profile">
+      <span class="am-icon">◇</span> Mon profil
+    </a>
+    <a class="am-item" href="{% url 'shop:wishlist' %}">
+      <span class="am-icon">♡</span> Mes favoris
+    </a>
     <a class="am-item {% if active_tab == 'addresses' %}active{% endif %}"
-       href="{% url 'shop:account' %}?tab=addresses"><span class="am-icon">📍</span> Mes adresses</a>
+       href="{% url 'shop:account' %}?tab=addresses">
+      <span class="am-icon">◇</span> Mes adresses
+    </a>
     <a class="am-item {% if active_tab == 'password' %}active{% endif %}"
-       href="{% url 'shop:account' %}?tab=password"><span class="am-icon">🔒</span> Mot de passe</a>
-    <a class="am-item" href="{% url 'accounts:logout' %}" style="color:#ff4444"><span class="am-icon">🚪</span> Déconnexion</a>
+       href="{% url 'shop:account' %}?tab=password">
+      <span class="am-icon">◇</span> Mot de passe
+    </a>
+    <a class="am-item" href="{% url 'accounts:logout' %}" style="color:#a8443a">
+      <span class="am-icon">→</span> Déconnexion
+    </a>
   </aside>
 
-  <!-- CONTENU -->
-  <div class="account-content">
+  <section class="account-content">
 
     {% if active_tab == 'orders' or not active_tab %}
-    <div class="ac-title">Mes commandes</div>
-    {% for order in orders %}
-    <div class="order-row">
-      <div class="order-img">{{ order.embroidery_name|default:"🌸" }}</div>
-      <div>
-        <div class="order-name">{{ order.items.first.product_name|default:"Commande" }}</div>
-        <div class="order-date">Commande #{{ order.reference }} · {{ order.created_at|date:"d M Y" }}</div>
-      </div>
-      <div>
-        <div class="order-status status-{{ order.status }}">
-          {% if order.status == 'delivered' %}✓ Livré
-          {% elif order.status == 'shipped' %}🚚 En livraison
-          {% elif order.status == 'in_embroidery' %}🎨 En personnalisation
-          {% elif order.status == 'confirmed' %}✅ Confirmée
-          {% else %}⏳ En attente{% endif %}
+      <div class="ac-title">Mes commandes</div>
+      {% for order in orders %}
+      <div class="order-row">
+        <div class="order-img">{{ order.embroidery_name|default:"🌸" }}</div>
+        <div>
+          <div class="order-name">{{ order.items.first.product_name|default:"Commande" }}</div>
+          <div class="order-date">#{{ order.reference }} · {{ order.created_at|date:"d M Y" }}</div>
         </div>
+        <div class="order-status status-{{ order.status }}">{{ order.get_status_display }}</div>
+        <a class="order-link" href="{% url 'shop:order_detail' order.reference %}">Voir →</a>
       </div>
-      <div class="order-price">{{ order.total_amount|floatformat:0 }} F</div>
-    </div>
-    {% empty %}
-    <p style="color:var(--muted);font-size:13px;padding:1rem 0">Aucune commande pour l'instant.</p>
-    {% endfor %}
-
-    {% elif active_tab == 'profile' %}
-    <div class="ac-title">Mon profil</div>
-    <form method="POST" action="{% url 'accounts:profile' %}">
-      {% csrf_token %}
-      <input type="hidden" name="action" value="update_profile">
-      <div class="form-row">
-        <div class="form-group"><label>Prénom</label><input type="text" name="first_name" value="{{ request.user.first_name }}" maxlength="50"></div>
-        <div class="form-group"><label>Nom</label><input type="text" name="last_name" value="{{ request.user.last_name }}" maxlength="50"></div>
+      {% empty %}
+      <div class="ac-empty">
+        <div class="icon">◇</div>
+        <p>Vous n'avez pas encore passé de commande.</p>
+        <a href="{% url 'shop:home' %}" class="btn-ac" style="margin-top:14px">Découvrir la boutique</a>
       </div>
-      <div class="form-row full" style="margin-top:8px">
-        <div class="form-group"><label>Téléphone</label><input type="tel" name="phone" value="{{ request.user.phone }}" maxlength="20"></div>
-      </div>
-      <div class="form-row full" style="margin-top:8px">
-        <div class="form-group"><label>Email</label><input type="email" value="{{ request.user.email }}" readonly style="opacity:0.6;cursor:not-allowed"></div>
-      </div>
-      <button type="submit" class="apply-filter" style="width:auto;padding:10px 24px;margin-top:12px">Sauvegarder</button>
-    </form>
-
-    {% elif active_tab == 'addresses' %}
-    <div class="ac-title">Mes adresses</div>
-    {% for addr in addresses %}
-    <div style="background:var(--light);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:10px">
-      <div style="font-size:13px;font-weight:500">{{ addr.label }} {% if addr.is_default %}<span style="color:var(--rose);font-size:10px">● Par défaut</span>{% endif %}</div>
-      <div style="font-size:12px;color:var(--muted);margin-top:4px">{{ addr.address }}<br>{{ addr.city }}, Côte d'Ivoire</div>
-    </div>
-    {% empty %}
-    <p style="color:var(--muted);font-size:13px">Aucune adresse enregistrée.</p>
-    {% endfor %}
-    <a href="#" class="apply-filter" style="width:auto;padding:10px 24px;display:inline-block;margin-top:8px;text-decoration:none">+ Ajouter une adresse</a>
-
-    {% elif active_tab == 'password' %}
-    <div class="ac-title">Changer le mot de passe</div>
-    <form method="POST" action="{% url 'accounts:change_password' %}">
-      {% csrf_token %}
-      <div class="form-row full">
-        <div class="form-group"><label>Mot de passe actuel</label><input type="password" name="current_password" required></div>
-      </div>
-      <div class="form-row full" style="margin-top:8px">
-        <div class="form-group"><label>Nouveau mot de passe</label><input type="password" name="new_password" required minlength="10"></div>
-      </div>
-      <div class="form-row full" style="margin-top:8px">
-        <div class="form-group"><label>Confirmer</label><input type="password" name="new_password_confirm" required minlength="10"></div>
-      </div>
-      <button type="submit" class="apply-filter" style="width:auto;padding:10px 24px;margin-top:12px">Mettre à jour</button>
-    </form>
+      {% endfor %}
     {% endif %}
 
-  </div>
+    {% if active_tab == 'profile' %}
+      <div class="ac-title">Mon profil</div>
+      <form method="post" class="ac-form">{% csrf_token %}
+        <div class="ac-field"><label>Prénom</label><input name="first_name" value="{{ request.user.first_name }}"></div>
+        <div class="ac-field"><label>Nom</label><input name="last_name" value="{{ request.user.last_name }}"></div>
+        <div class="ac-field full"><label>Email</label><input type="email" name="email" value="{{ request.user.email }}"></div>
+        <div class="ac-field full"><label>Téléphone</label><input name="phone" value="{{ request.user.profile.phone|default:'' }}"></div>
+        <div class="ac-actions">
+          <button class="btn-ac" type="submit">Enregistrer</button>
+        </div>
+      </form>
+    {% endif %}
+
+    {% if active_tab == 'addresses' %}
+      <div class="ac-title">Mes adresses</div>
+      <form method="post" class="ac-form">{% csrf_token %}
+        <div class="ac-field full"><label>Adresse</label><input name="address" value="{{ address.line1|default:'' }}"></div>
+        <div class="ac-field"><label>Ville</label><input name="city" value="{{ address.city|default:'' }}"></div>
+        <div class="ac-field"><label>Quartier</label><input name="district" value="{{ address.district|default:'' }}"></div>
+        <div class="ac-field full"><label>Indications</label><textarea name="notes" rows="3">{{ address.notes|default:'' }}</textarea></div>
+        <div class="ac-actions"><button class="btn-ac" type="submit">Enregistrer</button></div>
+      </form>
+    {% endif %}
+
+    {% if active_tab == 'password' %}
+      <div class="ac-title">Mot de passe</div>
+      <form method="post" class="ac-form">{% csrf_token %}
+        <div class="ac-field full"><label>Mot de passe actuel</label><input type="password" name="old_password"></div>
+        <div class="ac-field"><label>Nouveau mot de passe</label><input type="password" name="new_password1"></div>
+        <div class="ac-field"><label>Confirmer</label><input type="password" name="new_password2"></div>
+        <div class="ac-actions"><button class="btn-ac" type="submit">Mettre à jour</button></div>
+      </form>
+    {% endif %}
+
+  </section>
 </div>
 {% endif %}
 {% endblock %}

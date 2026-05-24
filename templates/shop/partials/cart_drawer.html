@@ -1,0 +1,98 @@
+{# ============================================================
+   Mini panier latéral — à inclure dans base.html juste avant </body>
+   Usage : {% include 'shop/partials/cart_drawer.html' %}
+   Déclencheur : un bouton/lien avec id="openCartDrawer" dans le header
+   ============================================================ #}
+
+<div id="cartDrawerOverlay" class="cart-drawer-overlay"></div>
+
+<aside id="cartDrawer" class="cart-drawer" aria-hidden="true" aria-label="Mini panier">
+  <div class="cd-head">
+    <div class="cd-title">Panier</div>
+    <button class="cd-close" id="closeCartDrawer" aria-label="Fermer">✕</button>
+  </div>
+
+  <div class="cd-items" id="cdItems">
+    {# Rempli dynamiquement par cart_drawer.js (apiGet /panier/mini/) #}
+  </div>
+
+  <div class="cd-empty" id="cdEmpty" style="display:none">
+    <div class="icon">🧺</div>
+    <p>Votre panier est vide</p>
+    <a href="{% url 'shop:home' %}" class="btn-ac" style="margin-top:14px">Découvrir</a>
+  </div>
+
+  <div class="cd-foot" id="cdFoot">
+    <div class="cd-subtotal">
+      <span>Sous-total</span>
+      <span id="cdSubtotal">0 F</span>
+    </div>
+    <div class="cd-note">Livraison et taxes calculées à l'étape suivante.</div>
+    <a href="{% url 'shop:checkout' %}" class="checkout-btn">Procéder au paiement</a>
+    <a href="{% url 'shop:cart' %}" class="view-cart">Voir le panier complet</a>
+  </div>
+</aside>
+
+<script>
+(function(){
+  var drawer  = document.getElementById('cartDrawer');
+  var overlay = document.getElementById('cartDrawerOverlay');
+  var openBtn = document.getElementById('openCartDrawer');
+  var closeBtn= document.getElementById('closeCartDrawer');
+
+  function open(){
+    drawer.classList.add('open');
+    overlay.classList.add('open');
+    drawer.setAttribute('aria-hidden','false');
+    document.body.style.overflow = 'hidden';
+    if (typeof refreshMiniCart === 'function') refreshMiniCart();
+  }
+  function close(){
+    drawer.classList.remove('open');
+    overlay.classList.remove('open');
+    drawer.setAttribute('aria-hidden','true');
+    document.body.style.overflow = '';
+  }
+
+  if (openBtn) openBtn.addEventListener('click', function(e){ e.preventDefault(); open(); });
+  if (closeBtn) closeBtn.addEventListener('click', close);
+  overlay.addEventListener('click', close);
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') close(); });
+
+  // Hook : ouvre automatiquement après addToCart si l'on déclenche window.dispatchEvent(new Event('cart:added'))
+  window.addEventListener('cart:added', open);
+
+  // Mini-cart fetch (optionnel — adapte l'URL à ton backend)
+  window.refreshMiniCart = async function(){
+    try{
+      var data = await apiGet('/panier/mini/');
+      var root = document.getElementById('cdItems');
+      var empty= document.getElementById('cdEmpty');
+      var foot = document.getElementById('cdFoot');
+      root.innerHTML = '';
+      if (!data.items || !data.items.length){
+        empty.style.display = 'flex';
+        foot.style.display = 'none';
+        return;
+      }
+      empty.style.display = 'none';
+      foot.style.display = 'block';
+      data.items.forEach(function(it){
+        var html = ''
+          + '<div class="cd-item">'
+          + '  <div class="cd-item-img">' + (it.image ? '<img src="'+it.image+'" alt="">' : (it.emoji||'')) + '</div>'
+          + '  <div>'
+          + '    <div class="cd-item-name">'+ it.name +'</div>'
+          + '    <div class="cd-item-meta">Qté '+ it.quantity + (it.size?' · '+it.size:'') +'</div>'
+          + '    <button class="cd-item-remove" onclick="removeFromCart(\''+ it.cart_key +'\').then(refreshMiniCart)">Retirer</button>'
+          + '  </div>'
+          + '  <div class="cd-item-price">'+ Number(it.line_total).toLocaleString('fr-FR') +' F</div>'
+          + '</div>';
+        root.insertAdjacentHTML('beforeend', html);
+      });
+      document.getElementById('cdSubtotal').textContent =
+        Number(data.subtotal).toLocaleString('fr-FR') + ' F';
+    }catch(err){ console.warn('[miniCart]', err); }
+  };
+})();
+</script>

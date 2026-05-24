@@ -28,6 +28,7 @@ async function addToCart(productId, name, price, emoji) {
 
         updateCartBadge(data.cart_count);
         showToast('✅ ' + name + ' ajouté au panier !');
+        window.dispatchEvent(new Event('cart:added'));
     } catch (err) {
         console.error('[addToCart]', err);
         showToast('❌ ' + err.message, 'error');

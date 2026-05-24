@@ -3,90 +3,96 @@
 
 {% block title %}Mon Panier — ChicShop{% endblock %}
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'shop/css/_atelier-tokens.css' %}">
 <link rel="stylesheet" href="{% static 'shop/css/cart.css' %}">
-<style>
-  .cart-item {
-    transition: all 0.3s ease;
-  }
-  .checkout-btn.disabled {
-    opacity: 0.5;
-    pointer-events: none;
-    cursor: not-allowed;
-  }
-  .promo-msg.success {
-    color: #2d6e2d;
-  }
-  .promo-msg.error {
-    color: #c0392b;
-  }
-  .ci-opt.recipient {
-    background: #fce8f0;
-    color: #7a1a3a;
-    font-weight: 500;
-  }
-</style>
 {% endblock %}
 
 {% block content %}
-<h1 class="page-title">Mon <span>Panier</span></h1>
+<h1 class="page-title">Votre <span>panier</span></h1>
 
 {% if cart_items %}
 <div class="cart-layout">
 
   <div class="cart-items">
-    <div class="cart-header">🛒 Mon panier ({{ cart_items|length }} article{{ cart_items|length|pluralize }})</div>
+    <div class="cart-header">
+      {{ cart_items|length }} article{{ cart_items|length|pluralize }} dans votre panier
+    </div>
+
     {% for item in cart_items %}
     <div class="cart-item" id="ci-{{ forloop.counter }}" data-cart-key="{{ item.cart_key }}">
       <div class="ci-img">
-        {% if item.product.image %}<img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
-        {% else %}{{ item.product.emoji }} {{ item.product.name|truncatewords:1 }}{% endif %}
+        {% if item.product.image %}
+          <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+        {% else %}
+          {{ item.product.emoji }}
+        {% endif %}
       </div>
+
       <div class="ci-details">
         <div class="ci-name">{{ item.product.name }}</div>
+
         <div class="ci-opts">
-          {% if item.size %}<span class="ci-opt recipient">💝 Pour : {{ item.size }}</span>{% endif %}
-          {% if item.embroidery_name %}<span class="ci-opt">✨ Broderie : {{ item.embroidery_name }}</span>{% endif %}
-          {% if item.personal_message %}<span class="ci-opt">✉️ {{ item.personal_message|truncatechars:30 }}</span>{% endif %}
+          {% if item.size %}<span class="ci-opt recipient">Pour&nbsp;: {{ item.size }}</span>{% endif %}
+          {% if item.embroidery_name %}<span class="ci-opt">Broderie&nbsp;: {{ item.embroidery_name }}</span>{% endif %}
+          {% if item.personal_message %}<span class="ci-opt">{{ item.personal_message|truncatechars:30 }}</span>{% endif %}
         </div>
+
         <div class="ci-qty">
           <button onclick="updateCartQty('{{ item.cart_key|escapejs }}', -1)" type="button" aria-label="Diminuer">−</button>
           <span id="qty-{{ forloop.counter }}">{{ item.quantity }}</span>
           <button onclick="updateCartQty('{{ item.cart_key|escapejs }}', 1)" type="button" aria-label="Augmenter">+</button>
         </div>
-        <button class="ci-remove" onclick="removeFromCart('{{ item.cart_key|escapejs }}')" type="button">🗑 Supprimer</button>
+
+        <br>
+        <button class="ci-remove" onclick="removeFromCart('{{ item.cart_key|escapejs }}')" type="button">
+          Retirer
+        </button>
       </div>
-      <div class="ci-price" id="price-{{ forloop.counter }}">{{ item.line_total|floatformat:0 }} F</div>
+
+      <div class="ci-price" id="price-{{ forloop.counter }}">
+        {{ item.line_total|floatformat:0 }} F
+      </div>
     </div>
     {% endfor %}
   </div>
 
-  <div class="cart-summary">
-    <div class="cs-title">Résumé de la commande</div>
-    <div class="cs-row"><span>Sous-total</span><span id="cartSubtotal">{{ subtotal|floatformat:0 }} F CFA</span></div>
-    <div class="cs-row"><span>Livraison</span><span style="color:#2d6e2d">Gratuite</span></div>
-    <div class="cs-row"><span>Emballage cadeau</span><span style="color:#2d6e2d">Offert</span></div>
-    <div class="cs-row total"><span>Total</span><span id="cartTotal">{{ subtotal|floatformat:0 }} F CFA</span></div>
-    <div class="promo-input">
-      <input type="text" id="promoCode" placeholder="Code promo" maxlength="30">
-      <button type="button" onclick="applyPromoCode()">Appliquer</button>
+  <aside class="cart-summary">
+    <div class="cs-title">Récapitulatif</div>
+
+    <div class="cs-row">
+      <span>Sous-total</span>
+      <span id="cartSubtotal">{{ subtotal|floatformat:0 }} F CFA</span>
     </div>
-    <div id="promoMsg" class="promo-msg" aria-live="polite"></div>
-    <a href="{% url 'shop:checkout' %}" class="checkout-btn" id="checkoutBtn">✨ Commander maintenant</a>
-    <div class="pay-icons">
-      <div class="pay-icon">Orange Money</div>
-      <div class="pay-icon">Wave</div>
-      <div class="pay-icon">Cash</div>
+    <div class="cs-row">
+      <span>Livraison</span>
+      <span>{% if shipping %}{{ shipping|floatformat:0 }} F{% else %}Calculée à l'étape suivante{% endif %}</span>
     </div>
-    <p class="cart-trust">✅ Garantie Sourire · 🚚 Livraison gratuite · 🎁 Emballage offert</p>
-  </div>
+
+    <div class="promo-box">
+      <input type="text" id="promoCode" placeholder="Code promo">
+      <button onclick="applyPromoCode()" type="button">Appliquer</button>
+    </div>
+    <div id="promoMsg" class="promo-msg"></div>
+
+    <div class="cs-row total">
+      <span>Total</span>
+      <span id="cartTotal">{{ total|floatformat:0 }} F CFA</span>
+    </div>
+
+    <a href="{% url 'shop:checkout' %}" class="checkout-btn" id="checkoutBtn">
+      Procéder au paiement
+    </a>
+    <a href="{% url 'shop:home' %}" class="continue-shop">← Continuer mes achats</a>
+  </aside>
+
 </div>
 
 {% else %}
 <div class="cart-empty">
-  <div class="icon">🛒</div>
+  <div class="icon">🧺</div>
   <h3>Votre panier est vide</h3>
-  <p>Découvrez notre collection et ajoutez vos articles préférés !</p>
-  <a href="{% url 'shop:catalog' %}" class="btn-gold" style="display:inline-block;margin-top:1.5rem">Découvrir la collection</a>
+  <p>Découvrez nos pièces brodées à la main, pensées pour les moments précieux.</p>
+  <a href="{% url 'shop:home' %}" class="btn-ac">Découvrir la boutique</a>
 </div>
 {% endif %}
 {% endblock %}
