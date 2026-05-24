@@ -680,3 +680,55 @@ def _time_ago(dt):
     if days < 30:
         return f"Il y a {days // 7} semaine(s)"
     return f"Il y a {days // 30} mois"
+
+
+from django.http import JsonResponse
+from apps.products.models import Product  # Assure-toi que l'import de Product est correct
+
+def mini_cart_api(request):
+    """Renvoie les données réelles du mini-panier au format JSON pour le cart_drawer"""
+    cart = request.session.get('chicshop_cart', {})
+    
+    response_data = {
+        'items': [],
+        'subtotal': 0
+    }
+    
+    subtotal = 0
+    
+    # On parcourt les éléments du panier en session
+    for item_key, item_data in cart.items():
+        try:
+            # On récupère l'ID du produit (généralement stocké dans item_data)
+            product_id = item_data.get('product_id') or item_data.get('id')
+            if not product_id:
+                continue
+                
+            product = Product.objects.get(id=product_id)
+            
+            quantity = int(item_data.get('qty', 1))
+            price = float(product.price)  # Ou item_data.get('price') si tu stockes le prix figé
+            line_total = price * quantity
+            subtotal += line_total
+            
+            # Récupération sécurisée de l'image
+            image_url = product.images.first().image.url if product.images.exists() else None
+            if not image_url and product.image:  # Si tu as un champ image direct sur le produit
+                image_url = product.image.url
+
+            # On construit l'item au format attendu par ton JavaScript
+            response_data['items'].append({
+                'cart_key': item_key,
+                'name': product.name,
+                'quantity': quantity,
+                'price': price,
+                'line_total': line_total,
+                'image': image_url,
+            })
+        except (Product.DoesNotExist, ValueError, TypeError):
+            # Si un produit a été supprimé du catalogue entre-temps, on passe sans faire crasher le panier
+            continue
+
+    response_data['subtotal'] = subtotal
+    
+    return JsonResponse(response_data)

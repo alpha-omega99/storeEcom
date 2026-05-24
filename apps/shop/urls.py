@@ -40,6 +40,8 @@ urlpatterns = [
     path('favoris/toggle/',    views.wishlist_toggle, name='wishlist_toggle'),
 
     # ===== COMPTE =====
+    
     path('compte/',            views.account_view,    name='account'),
-
+    # Exemple dans tes urls.py — l'URL doit pointer vers une vraie JsonResponse, sans redirection !
+    path('panier/mini/', views.mini_cart_api, name='mini_cart_api'),
 ]
