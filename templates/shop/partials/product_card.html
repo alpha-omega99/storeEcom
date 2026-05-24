@@ -22,8 +22,9 @@
   </div>
   {% endif %}
 
-  <!-- Bouton favoris —— CORRECTION : UUID entre guillemets dans onclick -->
-  <button class="pwish {% if product.id|stringformat:'s' in wishlist_ids|join:',' %}active{% endif %}"
+  <!-- Bouton favoris — CORRECTION : data-product-id + onclick propre -->
+  <button class="pwish {% if product.id|stringformat:'s' in wishlist_ids %}active{% endif %}"
+          data-product-id="{{ product.id }}"
           onclick="toggleWish('{{ product.id }}', this)"
           aria-label="Ajouter aux favoris"
           title="Favoris">♡</button>
@@ -51,7 +52,7 @@
       {% endif %}
     </div>
 
-    <!-- CORRECTION : UUID entre guillemets dans onclick -->
+    <!-- CORRECTION : onclick propre avec stopPropagation -->
     <button class="pcard-btn"
             onclick="event.stopPropagation(); addToCart('{{ product.id }}', '{{ product.name|escapejs }}', {{ product.price }}, '{{ product.emoji|escapejs }}')"
             aria-label="Ajouter {{ product.name }} au panier"

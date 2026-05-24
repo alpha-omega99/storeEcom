@@ -10,10 +10,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='product',
-            name='available_sizes',
-        ),
         migrations.AddField(
             model_name='product',
             name='available_person',

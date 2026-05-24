@@ -1,186 +1,64 @@
-{% extends 'shop/base.html' %}
 {% load static %}
-{% block title %}Finaliser ma commande — ChicShop{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'shop/css/checkout.css' %}">{% endblock %}
 
-{% block content %}
-<h1 class="page-title">Finaliser ma <span>commande</span></h1>
+<article class="pcard" data-product-id="{{ product.id }}">
 
-<!-- CORRECTION : Affichage alertes Django -->
-{% if messages %}
-<div class="messages">
-  {% for message in messages %}
-    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-  {% endfor %}
-</div>
-{% endif %}
-
-<form method="POST" action="{% url 'shop:checkout' %}" id="checkoutForm" novalidate>
-  {% csrf_token %}
-  <div class="checkout-layout">
-
-    <!-- FORMULAIRE -->
-    <div class="checkout-form">
-
-      <!-- STEP 1 : Infos client -->
-      <div class="cf-section">
-        <div class="cf-title"><div class="cf-num">1</div> Vos informations</div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="firstName">Prénom *</label>
-            <input type="text" id="firstName" name="customer_first_name"
-                   value="{% if request.user.is_authenticated %}{{ request.user.first_name }}{% endif %}"
-                   placeholder="Fatima" required maxlength="50">
-          </div>
-          <div class="form-group">
-            <label for="lastName">Nom *</label>
-            <input type="text" id="lastName" name="customer_last_name"
-                   value="{% if request.user.is_authenticated %}{{ request.user.last_name }}{% endif %}"
-                   placeholder="Diallo" required maxlength="50">
-          </div>
-        </div>
-        <div class="form-row full">
-          <div class="form-group">
-            <label for="phone">Téléphone WhatsApp *</label>
-            <input type="tel" id="phone" name="customer_phone"
-                   value="{% if request.user.is_authenticated %}{{ request.user.phone }}{% endif %}"
-                   placeholder="+225 07 00 00 00 00" required maxlength="20">
-          </div>
-        </div>
-        <div class="form-row full">
-          <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" name="customer_email"
-                   value="{% if request.user.is_authenticated %}{{ request.user.email }}{% endif %}"
-                   placeholder="fatima@email.com" maxlength="254">
-          </div>
-        </div>
+  <!-- Image -->
+  <a href="{% url 'shop:product_detail' product.slug %}" class="pcard-link"
+     aria-label="{{ product.name }}">
+    {% if product.image %}
+      <img class="pcard-img" src="{{ product.image.url }}"
+           alt="{{ product.name }}" loading="lazy">
+    {% else %}
+      <div class="pcard-img-placeholder" aria-hidden="true">
+        {{ product.emoji }} {{ product.name|truncatewords:1 }}
       </div>
+    {% endif %}
+  </a>
 
-      <!-- STEP 2 : Livraison -->
-      <div class="cf-section">
-        <div class="cf-title"><div class="cf-num">2</div> Livraison à Abidjan</div>
-        <div class="form-row full">
-          <div class="form-group">
-            <label for="city">Quartier / Commune *</label>
-            <select id="city" name="delivery_city" required>
-              {% for commune in communes %}
-                <option value="{{ commune }}"
-                  {% if request.user.is_authenticated and request.user.city == commune %}selected{% endif %}>
-                  {{ commune }}
-                </option>
-              {% empty %}
-                <option value="Cocody">Cocody</option>
-                <option value="Yopougon">Yopougon</option>
-                <option value="Plateau">Plateau</option>
-                <option value="Marcory">Marcory</option>
-                <option value="Abobo">Abobo</option>
-                <option value="Adjamé">Adjamé</option>
-                <option value="Treichville">Treichville</option>
-                <option value="Koumassi">Koumassi</option>
-                <option value="Bingerville">Bingerville</option>
-                <option value="EXpédition">EXpédition</option>
-
-
-              {% endfor %}
-            </select>
-          </div>
-        </div>
-        <div class="form-row full">
-          <div class="form-group">
-            <label for="address">Adresse complète *</label>
-            <input type="text" id="address" name="delivery_address"
-                   placeholder="Rue, Résidence, numéro..." required maxlength="500">
-          </div>
-        </div>
-        <div class="form-row full">
-          <div class="form-group">
-            <label for="instructions">Instructions de livraison</label>
-            <textarea id="instructions" name="delivery_instructions" rows="2"
-                      placeholder="Point de repère, instructions spéciales..." maxlength="300"></textarea>
-          </div>
-        </div>
-      </div>
-
-      <!-- STEP 3 : Paiement -->
-      <div class="cf-section">
-        <div class="cf-title"><div class="cf-num">3</div> Moyen de paiement</div>
-        <div class="pay-method" role="group" aria-label="Mode de paiement">
-          <label class="pm-opt sel">
-            <input type="radio" name="payment_method" value="orange_money" checked hidden>
-            <div class="pm-icon">📱</div>
-            <div class="pm-name">Orange Money</div>
-          </label>
-          <label class="pm-opt">
-            <input type="radio" name="payment_method" value="wave" hidden>
-            <div class="pm-icon">🌊</div>
-            <div class="pm-name">Wave</div>
-          </label>
-          <label class="pm-opt">
-            <input type="radio" name="payment_method" value="cash" hidden>
-            <div class="pm-icon">💵</div>
-            <div class="pm-name">Cash livraison</div>
-          </label>
-        </div>
-      </div>
-
-      {% comment %} <!-- STEP 4 : Broderie -->
-      <div class="cf-section">
-        <div class="cf-title"><div class="cf-num">4</div> Personnalisation broderie</div>
-        <div class="form-row full">
-          <div class="form-group">
-            <label for="embroideryName">Prénom à broder</label>
-            <input type="text" id="embroideryName" name="embroidery_name"
-                   placeholder="Fatima, Ibrahim, Maïssa..." maxlength="20">
-          </div>
-        </div>
-        <div class="form-row full">
-          <div class="form-group">
-            <label for="personalMsg">Message personnalisé (optionnel)</label>
-            <input type="text" id="personalMsg" name="personal_message"
-                   placeholder="Qu'Allah te rapproche de Lui..." maxlength="200">
-          </div>
-        </div>
-      </div>
-
-      <div id="formErrors" class="form-errors" style="display:none;color:#c0392b;margin-bottom:15px"></div>
-
-      <button type="submit" class="checkout-btn" id="submitBtn">✨ Confirmer ma commande</button>
-    </div> {% endcomment %}
-
-    <!-- RÉCAP -->
-    <div class="order-recap">
-      <div class="cs-title">Récapitulatif</div>
-      {% for item in cart_items %}
-      <div class="recap-item">
-        <div class="ri-img">{{ item.product.emoji }}</div>
-        <div class="ri-name">{{ item.product.name }} ×{{ item.quantity }}</div>
-        <!-- CORRECTION : Affichage des variantes dans le récap -->
-        <div class="ri-opts" style="font-size:11px;color:var(--muted)">
-          {% if item.embroidery_name %} · {{ item.embroidery_name }}{% endif %}
-        </div>
-        <div class="ri-price">{{ item.line_total|floatformat:0 }} F</div>
-      </div>
-      {% endfor %}
-      <div style="border-top:1px solid var(--border);margin-top:10px;padding-top:10px">
-        <div class="cs-row"><span>Sous-total</span><span>{{ subtotal|floatformat:0 }} F CFA</span></div>
-        <div class="cs-row"><span>Livraison</span><span style="color:#2d6e2d">Gratuite</span></div>
-        <div class="cs-row"><span>Emballage cadeau</span><span style="color:#2d6e2d">Offert</span></div>
-        <div class="cs-row total"><span>Total</span><span>{{ subtotal|floatformat:0 }} F CFA</span></div>
-      </div>
-      <div class="pay-icons">
-        <div class="pay-icon">Orange Money</div>
-        <div class="pay-icon">Wave</div>
-        <div class="pay-icon">Cash</div>
-      </div>
-      <p style="margin-top:12px;font-size:11px;color:var(--muted);text-align:center;line-height:1.6">
-        ✅ Garantie Sourire — Personnalisation refaite gratuitement<br>
-        🚚 Livraison Sous 24 Heure<br>
-        💬 Suivi sur WhatsApp
-      </p>
-    </div>
+  <!-- Badges -->
+  {% if product.badge %}
+  <div class="pcard-badges">
+    <span class="pbadge-{{ product.badge|lower }}">{{ product.badge }}</span>
   </div>
-</form>
-{% endblock %}
+  {% endif %}
 
-{% block extra_js %}<script src="{% static 'shop/js/checkout.js' %}"></script>{% endblock %}
+  <!-- Bouton favoris — CORRECTION : data-product-id + onclick propre -->
+  <button class="pwish {% if product.id|stringformat:'s' in wishlist_ids %}active{% endif %}"
+          data-product-id="{{ product.id }}"
+          onclick="toggleWish('{{ product.id }}', this)"
+          aria-label="Ajouter aux favoris"
+          title="Favoris">♡</button>
+
+  <!-- Infos produit -->
+  <div class="pcard-body">
+    <div class="pcard-cat">{{ product.category.name }}</div>
+
+    <a href="{% url 'shop:product_detail' product.slug %}" class="pcard-name-link">
+      <div class="pcard-name">{{ product.name }}</div>
+    </a>
+
+    <div class="pcard-stars" aria-label="{{ product.average_rating }} étoiles sur 5">
+      {% for i in "12345" %}
+        {% if forloop.counter <= product.average_rating %}★{% else %}☆{% endif %}
+      {% endfor %}
+      <span>{{ product.review_count }} avis</span>
+    </div>
+
+    <div class="pcard-price">
+      <strong>{{ product.price|floatformat:0 }} F CFA</strong>
+      {% if product.original_price %}
+        <s>{{ product.original_price|floatformat:0 }} F</s>
+        <span class="disc">-{{ product.discount_percent }}%</span>
+      {% endif %}
+    </div>
+
+    <!-- CORRECTION : onclick propre avec stopPropagation -->
+    <button class="pcard-btn"
+            onclick="event.stopPropagation(); addToCart('{{ product.id }}', '{{ product.name|escapejs }}', {{ product.price }}, '{{ product.emoji|escapejs }}')"
+            aria-label="Ajouter {{ product.name }} au panier"
+            type="button">
+      🛒 Ajouter au panier
+    </button>
+  </div>
+
+</article>

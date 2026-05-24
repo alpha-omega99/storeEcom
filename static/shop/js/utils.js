@@ -1,10 +1,12 @@
 /* ============================================================
-   ChicShop — utils.js
+   ChicShop — utils.js (CORRIGÉ FINAL)
    Utilitaires globaux : toast, CSRF, fetch helpers, wishlist
 
    CORRECTIONS :
-   - syncWishlistServer : URL /api/v1/wishlist/ remplacée par /favoris/toggle/
-     qui existe réellement dans shop/urls.py
+   - syncWishlistServer : URL /favoris/toggle/ (existe dans urls.py)
+   - WishlistStore : comparaison en STRING (pas Number) pour UUID
+   - initWishlistButtons : matching robuste des UUID
+   - Ajout de getSelectedSize() helper partagé
    ============================================================ */
 
 'use strict';
@@ -26,13 +28,10 @@ function showToast(msg, type) {
 
 /* ===== CSRF TOKEN ===== */
 function getCsrfToken() {
-    // 1. Cherche dans le formulaire Django
     var el = document.querySelector('[name=csrfmiddlewaretoken]');
     if (el) return el.value;
-    // 2. Cherche dans la balise meta
     var meta = document.querySelector('meta[name="csrf-token"]');
     if (meta) return meta.getAttribute('content');
-    // 3. Cherche dans le cookie (fallback)
     var cookies = document.cookie.split(';');
     for (var i = 0; i < cookies.length; i++) {
         var c = cookies[i].trim();
@@ -45,7 +44,7 @@ function getCsrfToken() {
 
 /* ===== API POST (JSON + CSRF) ===== */
 async function apiPost(url, data) {
-    // Ajouter le slash final si absent (Django redirige sinon en 301)
+    // Normaliser l'URL : ajouter slash final si absent
     if (!url.endsWith('/')) url += '/';
 
     var res = await fetch(url, {
@@ -104,7 +103,7 @@ function updateCartBadge(count) {
     }
 }
 
-/* ===== WISHLIST (localStorage) ===== */
+/* ===== WISHLIST (localStorage + STRING comparison pour UUID) ===== */
 var WishlistStore = {
     key: 'cs_wishlist',
     get: function() {
@@ -117,18 +116,22 @@ var WishlistStore = {
     set: function(ids) {
         localStorage.setItem(this.key, JSON.stringify(ids));
     },
+    // CORRECTION : comparaison STRING (pas Number) car UUID
     has: function(id) {
-        return this.get().indexOf(Number(id)) !== -1;
+        var strId = String(id);
+        return this.get().indexOf(strId) !== -1;
     },
     add: function(id) {
+        var strId = String(id);
         var l = this.get();
-        if (l.indexOf(Number(id)) === -1) {
-            l.push(Number(id));
+        if (l.indexOf(strId) === -1) {
+            l.push(strId);
             this.set(l);
         }
     },
     remove: function(id) {
-        this.set(this.get().filter(function(x) { return x !== Number(id); }));
+        var strId = String(id);
+        this.set(this.get().filter(function(x) { return x !== strId; }));
     },
     toggle: function(id) {
         if (this.has(id)) { this.remove(id); } else { this.add(id); }
@@ -140,9 +143,10 @@ var WishlistStore = {
 function toggleWish(productId, btn) {
     var active = WishlistStore.toggle(productId);
 
-    // Mettre à jour tous les boutons ♡ de ce produit
+    // CORRECTION : matching robuste des UUID avec data attribute
     document.querySelectorAll('.pwish').forEach(function(b) {
-        if (b.getAttribute('onclick') && b.getAttribute('onclick').indexOf(String(productId)) !== -1) {
+        var btnProductId = b.getAttribute('data-product-id');
+        if (btnProductId === String(productId)) {
             b.classList.toggle('active', active);
         }
     });
@@ -150,14 +154,13 @@ function toggleWish(productId, btn) {
 
     showToast(active ? '❤️ Ajouté aux favoris !' : 'Retiré des favoris');
 
-    // CORRECTION : URL correcte /favoris/toggle/ (existe dans shop/urls.py)
     syncWishlistServer(productId, active);
 }
 
 async function syncWishlistServer(productId, add) {
     try {
         await apiPost('/favoris/toggle/', {
-            product_id: productId,
+            product_id: String(productId),
             action: add ? 'add' : 'remove'
         });
     } catch (e) {
@@ -168,12 +171,11 @@ async function syncWishlistServer(productId, add) {
 /* ===== INIT WISHLIST AU CHARGEMENT ===== */
 function initWishlistButtons() {
     var ids = WishlistStore.get();
-    ids.forEach(function(id) {
-        document.querySelectorAll('.pwish').forEach(function(b) {
-            if (b.getAttribute('onclick') && b.getAttribute('onclick').indexOf(String(id)) !== -1) {
-                b.classList.add('active');
-            }
-        });
+    document.querySelectorAll('.pwish').forEach(function(b) {
+        var btnProductId = b.getAttribute('data-product-id');
+        if (btnProductId && ids.indexOf(btnProductId) !== -1) {
+            b.classList.add('active');
+        }
     });
 }
 

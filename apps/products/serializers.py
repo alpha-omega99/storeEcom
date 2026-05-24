@@ -59,7 +59,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             'stock_quantity', 'is_available',
             'allows_embroidery', 'max_embroidery_chars',
             'badge', 'emoji', 'color', 'image',
-            'included_items', 'available_sizes',
+            'included_items', 
             'average_rating', 'review_count', 'recent_reviews',
             'created_at',
         ]

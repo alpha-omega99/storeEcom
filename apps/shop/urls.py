@@ -3,7 +3,6 @@ ChicShop — URLs du shop (frontend)
 À inclure dans config/urls.py :
 
     path('', include('apps.shop.urls', namespace='shop')),
-    path('shop/', include('apps.shop.urls', namespace='shop')),  # ou prefix voulu
 """
 from django.urls import path
 from . import views
@@ -11,7 +10,7 @@ from . import views
 app_name = 'shop'
 
 urlpatterns = [
-    
+
     # ===== PAGES PRINCIPALES =====
     path('',                    views.home,           name='home'),
     path('promotions/',         views.promotions,     name='promotions'),
@@ -44,4 +43,3 @@ urlpatterns = [
     path('compte/',            views.account_view,    name='account'),
 
 ]
-

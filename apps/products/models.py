@@ -77,7 +77,7 @@ class Product(models.Model):
         help_text="Activer pour les packs premium (Écrin de Sérénité, Héritage Royal...)"
     )
     max_message_chars = models.PositiveSmallIntegerField(
-        default=100,
+        default=200,
         help_text="Nombre max de caractères pour le message personnalisé"
     )
 
@@ -90,13 +90,6 @@ class Product(models.Model):
     # Inclusions (liste d'articles dans le pack)
     included_items = models.TextField(blank=True, null=True, help_text="Éléments inclus dans ce produit (ex: 'Tapis de prière, Chapelet, Sac de transport')")
 
-    # Tailles disponibles
-    # Tu peux conserver available_sizes pour plus tard ou utiliser directement ce format :
-    target_options = models.JSONField(
-        default=list, 
-        blank=True, 
-        help_text="Ex: ['Maman 🌸', 'Mon Époux 🌙', 'Un Enfant ✨', 'Pour moi']"
-    )
     # SEO & Stats
     views_count = models.PositiveIntegerField(default=0)
     sales_count = models.PositiveIntegerField(default=0)

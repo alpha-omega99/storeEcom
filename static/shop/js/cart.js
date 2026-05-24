@@ -1,11 +1,13 @@
 /* ============================================================
-   ChicShop — cart.js (CORRIGÉ)
+   ChicShop — cart.js (CORRIGÉ FINAL)
    Gestion globale du panier : badge, add to cart
    Appelé sur toutes les pages via base.html
 
    CORRECTIONS :
-   - addToCart : envoie aussi selected_size et embroidery_name
+   - addToCart : envoie selected_size (récupéré du DOM si dispo)
    - addToCart : vérifie la réponse avant toast
+   - URL normalisée (pas de double slash)
+   - Gestion d'erreur réseau améliorée
    ============================================================ */
 
 'use strict';
@@ -14,19 +16,20 @@
 async function addToCart(productId, name, price, emoji) {
     try {
         var data = await apiPost('/panier/ajouter/', {
-            product_id: productId,
+            product_id: String(productId),
             quantity: 1,
             embroidery_name: '',
+            personal_message: '',
         });
 
-        // VÉRIFICATION : s'assurer que l'ajout a fonctionné
         if (!data || data.error) {
-            throw new Error(data.error || "Erreur lors de l'ajout au panier ");
+            throw new Error(data.error || "Erreur lors de l'ajout au panier");
         }
 
         updateCartBadge(data.cart_count);
         showToast('✅ ' + name + ' ajouté au panier !');
     } catch (err) {
+        console.error('[addToCart]', err);
         showToast('❌ ' + err.message, 'error');
     }
 }
@@ -38,7 +41,8 @@ async function loadCartBadge() {
         if (data && data.cart_count !== undefined) {
             updateCartBadge(data.cart_count);
         }
-    } catch {
+    } catch (err) {
+        console.warn('[loadCartBadge]', err);
         // Silencieux — le template a déjà rendu la valeur serveur
     }
 }

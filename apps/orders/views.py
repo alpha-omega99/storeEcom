@@ -6,7 +6,7 @@ import uuid
 import re
 import bleach
 from decimal import Decimal
-
+from .models import Order, OrderItem
 from django.db import models, transaction
 from django.core.validators import MinValueValidator
 from django.utils import timezone
@@ -17,12 +17,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
-from django.urls import path
 
-
-# ============================================================
-# MODELS
-# ============================================================
 
 def generate_order_reference():
     """Générer une référence de commande unique non prévisible"""
@@ -30,131 +25,6 @@ def generate_order_reference():
     prefix = settings.CHICSHOP.get('ORDER_REF_PREFIX', 'CS')
     suffix = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(8))
     return f"{prefix}-{suffix}"
-
-
-class Order(models.Model):
-    """Commande ChicShop"""
-
-    class Status(models.TextChoices):
-        PENDING = 'pending', 'En attente'
-        CONFIRMED = 'confirmed', 'Confirmée'
-        IN_EMBROIDERY = 'in_embroidery', 'En personnalisation'
-        PACKAGING = 'packaging', 'En emballage'
-        SHIPPED = 'shipped', 'Expédiée'
-        DELIVERED = 'delivered', 'Livrée'
-        CANCELLED = 'cancelled', 'Annulée'
-        REFUNDED = 'refunded', 'Remboursée'
-
-    class PaymentMethod(models.TextChoices):
-        ORANGE_MONEY = 'orange_money', 'Orange Money'
-        WAVE = 'wave', 'Wave'
-        CASH = 'cash', 'Cash à la livraison'
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    reference = models.CharField(
-        max_length=20, unique=True, db_index=True,
-        default=generate_order_reference
-    )
-
-    # Utilisateur — nullable (commandes invités)
-    user = models.ForeignKey(
-        'accounts.User', on_delete=models.SET_NULL,
-        null=True, blank=True, related_name='orders'
-    )
-
-    # Informations client (copiées au moment de la commande — immuables)
-    customer_first_name = models.CharField(max_length=50)
-    customer_last_name = models.CharField(max_length=50)
-    customer_email = models.EmailField()
-    customer_phone = models.CharField(max_length=20)
-
-    # Livraison
-    delivery_address = models.TextField()
-    delivery_city = models.CharField(max_length=100)
-    delivery_instructions = models.TextField(blank=True)
-
-    # Personnalisation broderie
-    embroidery_name = models.CharField(max_length=20, blank=True)
-    personal_message = models.CharField(max_length=200, blank=True)
-
-    # Tarification (snapshot au moment de la commande)
-    subtotal = models.DecimalField(max_digits=12, decimal_places=0)
-    discount_amount = models.DecimalField(max_digits=12, decimal_places=0, default=0)
-    total_amount = models.DecimalField(max_digits=12, decimal_places=0)
-    promo_code = models.CharField(max_length=30, blank=True)
-
-    # Paiement
-    payment_method = models.CharField(
-        max_length=20, choices=PaymentMethod.choices, default=PaymentMethod.CASH
-    )
-    payment_status = models.CharField(
-        max_length=20,
-        choices=[('pending', 'En attente'), ('paid', 'Payée'), ('failed', 'Échec'), ('refunded', 'Remboursée')],
-        default='pending'
-    )
-
-    # Statut
-    status = models.CharField(
-        max_length=20, choices=Status.choices, default=Status.PENDING
-    )
-
-    # Notes internes (admin seulement — jamais exposées à l'utilisateur)
-    admin_notes = models.TextField(blank=True)
-
-    # Timestamps
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    confirmed_at = models.DateTimeField(null=True, blank=True)
-    delivered_at = models.DateTimeField(null=True, blank=True)
-
-    class Meta:
-        verbose_name = 'commande'
-        verbose_name_plural = 'commandes'
-        ordering = ['-created_at']
-        indexes = [
-            models.Index(fields=['status', '-created_at']),
-            models.Index(fields=['customer_email']),
-            models.Index(fields=['reference']),
-        ]
-
-    def __str__(self):
-        return f"#{self.reference} — {self.customer_first_name} {self.customer_last_name}"
-
-    def update_status(self, new_status):
-        """Changer le statut et déclencher les actions associées"""
-        self.status = new_status
-        if new_status == 'confirmed':
-            self.confirmed_at = timezone.now()
-        elif new_status == 'delivered':
-            self.delivered_at = timezone.now()
-        self.save()
-        # Notifier le client (asynchrone)
-        from apps.accounts.tasks import send_order_status_update
-        send_order_status_update.delay(str(self.id), new_status)
-
-
-class OrderItem(models.Model):
-    """Ligne de commande — snapshot produit au moment de la commande"""
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey(
-        'products.Product', on_delete=models.PROTECT, related_name='order_items'
-    )
-    # Snapshot pour historique (même si le produit est modifié plus tard)
-    product_name = models.CharField(max_length=200)
-    unit_price = models.DecimalField(max_digits=10, decimal_places=0)
-    quantity = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
-    selected_size = models.CharField(max_length=50, blank=True)
-
-    class Meta:
-        verbose_name = "ligne de commande"
-
-    def __str__(self):
-        return f"{self.product_name} ×{self.quantity}"
-
-    @property
-    def line_total(self):
-        return self.unit_price * self.quantity
 
 
 # ============================================================
@@ -169,7 +39,6 @@ def sanitize(value, max_length=None):
 class OrderItemCreateSerializer(serializers.Serializer):
     product_id = serializers.UUIDField()
     quantity = serializers.IntegerField(min_value=1, max_value=20)
-    selected_size = serializers.CharField(max_length=50, required=False, default='')
 
 
 class OrderCreateSerializer(serializers.Serializer):
@@ -228,7 +97,7 @@ class OrderCreateSerializer(serializers.Serializer):
         v = sanitize(v, 20)
         if v and not re.match(r"^[\w\sÀ-ÿ\-']+$", v):
             raise serializers.ValidationError(
-                "Le prénom brodé ne peut contenir que des lettres."
+                "Le prénom personnalisé ne peut contenir que des lettres."
             )
         return v
 
@@ -253,8 +122,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderItem
-        fields = ['id', 'product_id', 'product_name', 'unit_price', 'quantity',
-                  'selected_size', 'line_total']
+        fields = ['id', 'product_id', 'product_name', 'unit_price', 'quantity', 'line_total']
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -348,7 +216,6 @@ class OrderCreateView(generics.GenericAPIView):
                     'product_name': product.name,
                     'unit_price': product.price,
                     'quantity': qty,
-                    'selected_size': item_data.get('selected_size', ''),
                 })
 
             # ---- 2. Valider le montant minimum ----
@@ -473,18 +340,6 @@ class MyOrdersView(generics.ListAPIView):
 
 
 # ============================================================
-# URLS
-# ============================================================
-app_name = 'orders'
-
-urlpatterns = [
-    path('', OrderCreateView.as_view(), name='create'),
-    path('my-orders/', MyOrdersView.as_view(), name='my_orders'),
-    path('<str:reference>/', OrderDetailView.as_view(), name='detail'),
-]
-
-
-# ============================================================
 # ADMIN
 # ============================================================
 from django.contrib import admin
@@ -492,8 +347,7 @@ from django.contrib import admin
 
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
-    readonly_fields = ['product', 'product_name', 'unit_price', 'quantity',
-                       'selected_size', 'line_total']
+    readonly_fields = ['product', 'product_name', 'unit_price', 'quantity', 'line_total']
     extra = 0
     can_delete = False
 

@@ -6,9 +6,70 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'shop/css/product.css' %}">
+<style>
+  /* Styles pour la sélection de destinataire */
+  .recipient-chip.sel {
+    background: var(--gold) !important;
+    color: #fff !important;
+    border-color: var(--gold) !important;
+  }
+  .recipient-chip {
+    transition: all 0.2s ease;
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 2px solid #ddd;
+    background: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .recipient-chip:hover:not(.sel) {
+    background: var(--light-gold);
+    border-color: var(--gold);
+  }
+  .recipient-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  /* Animation cœur favori */
+  .pwish.active {
+    color: #e74c3c;
+  }
+  .pwish.active::after {
+    content: '♥';
+  }
+  .pwish:not(.active)::after {
+    content: '♡';
+  }
+  .pwish {
+    font-size: 24px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .pwish:hover {
+    transform: scale(1.2);
+  }
+  /* Erreur input */
+  input.error {
+    border-color: #e74c3c !important;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2) !important;
+  }
+  /* Bouton disabled */
+  button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+</style>
 {% endblock %}
 
 {% block content %}
+
+<!-- Stock caché pour JS -->
+<input type="hidden" id="pdStockQty" value="{{ product.stock_quantity|default:999 }}">
 
 <nav class="breadcrumb" aria-label="Fil d'Ariane">
   <a href="{% url 'shop:home' %}">Accueil</a> ›
@@ -83,30 +144,46 @@
       </div>
       <div class="pd-stock">
         {% if product.is_available %}
-          ✓ En stock — Livraison 24 Heure
+          {% if product.stock_quantity and product.stock_quantity <= 5 %}
+            ⚠ Plus que {{ product.stock_quantity }} en stock — Livraison 24h
+          {% else %}
+            ✓ En stock — Livraison 24 Heure
+          {% endif %}
         {% else %}
           ⚠ Rupture de stock
         {% endif %}
       </div>
     </div>
 
-    <!-- Tailles -->
-    {% if product.available_sizes %}
+    <!-- À qui offrir ? -->
     <div class="pd-options">
-      <div class="od-label">Taille du tapis <span style="color:#c0392b">*</span></div>
-      <div class="size-chips">
-        {% for size in product.available_sizes %}
-          <button class="schip {% if forloop.first %}sel{% endif %}"
-                  onclick="selectSize(this)" data-size="{{ size }}" type="button">
-            {{ size }}
-          </button>
-        {% endfor %}
+      <div class="od-label">À qui aimerez-vous l'offrir ? <span style="color:#c0392b">*</span></div>
+      <div class="recipient-chips">
+        <button class="recipient-chip sel"
+                onclick="selectRecipient(this)" data-recipient="Marié" type="button">
+          💍 Marié(e)
+        </button>
+        <button class="recipient-chip"
+                onclick="selectRecipient(this)" data-recipient="Mariage" type="button">
+          🤵 Mariage
+        </button>
+        <button class="recipient-chip"
+                onclick="selectRecipient(this)" data-recipient="Amie" type="button">
+          👭 Amie
+        </button>
+        <button class="recipient-chip"
+                onclick="selectRecipient(this)" data-recipient="Anniversaire" type="button">
+          🎂 Anniversaire
+        </button>
+        <button class="recipient-chip"
+                onclick="selectRecipient(this)" data-recipient="Parent" type="button">
+          👨‍👩‍👧 Parent
+        </button>
       </div>
-      <small class="size-hint" style="color:var(--muted);font-size:12px;margin-top:4px;display:block">
-        Sélectionnez une taille pour continuer
+      <small class="recipient-hint" style="color:var(--muted);font-size:12px;margin-top:4px;display:block">
+        Sélectionnez à qui vous souhaitez offrir ce cadeau
       </small>
     </div>
-    {% endif %}
 
     <!-- Broderie -->
     {% if product.allows_embroidery %}
@@ -116,12 +193,13 @@
              id="embroideryInput"
              placeholder="Ex : Fatima, Ibrahim, Maïssa..."
              maxlength="{{ product.max_embroidery_chars|default:20 }}"
-             oninput="updateEmbroideryPreview(this.value)">
+             oninput="updateEmbroideryPreview(this.value)"
+             {% if product.embroidery_required %}required{% endif %}>
       <div class="name-preview" id="pdNamePreview" aria-live="polite">Votre prénom</div>
     </div>
     {% endif %}
 
-    <!-- Message personnalisé (packs premium >= 11 000 F CFA) -->
+    <!-- Message personnalisé -->
     {% if product.allows_personal_message %}
     <div class="name-input-block" id="personalMsgBlock">
       <label for="personalMsgInput">
@@ -147,9 +225,14 @@
         <span id="pdQty" aria-live="polite">1</span>
         <button onclick="changeQty(1)" type="button" aria-label="Augmenter">+</button>
       </div>
+      {% if product.stock_quantity %}
+      <small style="color:var(--muted);font-size:11px;margin-left:10px">
+        Max : {{ product.stock_quantity }}
+      </small>
+      {% endif %}
     </div>
 
-    <!-- ACTIONS PRINCIPALES (fusionnées) -->
+    <!-- ACTIONS PRINCIPALES -->
     <div class="pd-actions">
       <!-- Ajouter au panier -->
       <button class="btn-addcart"
@@ -168,7 +251,8 @@
       </button>
 
       <!-- Favoris -->
-      <button class="btn-wish pwish {% if product.id in wishlist_ids %}active{% endif %}"
+      <button class="pwish {% if product.id|stringformat:'s' in wishlist_ids %}active{% endif %}"
+              data-product-id="{{ product.id }}"
               onclick="toggleWish('{{ product.id }}', this)"
               aria-label="Ajouter aux favoris"
               type="button">♡</button>

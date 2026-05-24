@@ -1,16 +1,17 @@
 """
-ChicShop — Views shop (COMPLET + CORRIGÉ)
+ChicShop — Views shop (CORRIGÉ)
 
-CORRECTIONS :
-- Panier : clé composite (product_id:size:embroidery) pour gérer les variantes
-- cart_update / cart_remove : acceptent cart_key au lieu de product_id
-- checkout : panier vidé SEULEMENT après création commande réussie
-- require_POST importé correctement
+MODIFICATIONS :
+- cart_items_with_products : label 'size' affiché comme 'Pour : [Destinataire]'
+- _process_checkout : selected_size sauvegardé comme 'recipient' dans OrderItem
 """
 
 import json
 import logging
 from decimal import Decimal
+# Sépare l'import des modèles et de ta fonction/vue utility
+from apps.orders.models import Order, OrderItem
+from apps.orders.views import generate_order_reference
 
 from django.contrib import messages
 from django.core.paginator import Paginator
@@ -18,15 +19,13 @@ from django.db.models import Q, F
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
-
-from apps.orders.views import Order, OrderItem, generate_order_reference
 from apps.products.models import Category, Product, ProductReview, PromoCode
 
 logger = logging.getLogger('chicshop')
 
 
 # ------------------------------------------------------------------ #
-#  HELPERS PANIER SESSION (CORRIGÉS)
+#  HELPERS PANIER SESSION
 # ------------------------------------------------------------------ #
 
 CART_SESSION_KEY = 'chicshop_cart'
@@ -45,9 +44,9 @@ def cart_count(request):
     return sum(item.get('qty', 1) for item in get_cart(request).values())
 
 
-def _make_cart_key(product_id, size, embroidery):
+def _make_cart_key(product_id, embroidery):
     """Crée une clé unique pour chaque variante de produit."""
-    return f"{product_id}:{size or 'default'}:{embroidery or 'none'}"
+    return f"{product_id}:{embroidery or 'none'}"
 
 
 def cart_items_with_products(request):
@@ -56,7 +55,6 @@ def cart_items_with_products(request):
     if not cart:
         return items, Decimal(0)
 
-    # Extraire les product_ids des clés composites
     product_ids = []
     for key in cart.keys():
         try:
@@ -85,13 +83,12 @@ def cart_items_with_products(request):
         line_total = product.price * qty
         subtotal += line_total
         items.append({
-            'cart_key':        key,
-            'product':         product,
-            'quantity':        qty,
-            'size':            data.get('size', ''),
-            'embroidery_name': data.get('embroidery_name', ''),
+            'cart_key':         key,
+            'product':          product,
+            'quantity':         qty,
+            'embroidery_name':  data.get('embroidery_name', ''),
             'personal_message': data.get('personal_message', ''),
-            'line_total':      line_total,
+            'line_total':       line_total,
         })
     return items, subtotal
 
@@ -286,7 +283,7 @@ def add_review(request, slug):
 
 
 # ------------------------------------------------------------------ #
-#  PANIER (SESSION) — CORRIGÉ
+#  PANIER (SESSION)
 # ------------------------------------------------------------------ #
 
 def cart_view(request):
@@ -304,7 +301,6 @@ def cart_add(request):
         body       = json.loads(request.body)
         product_id = str(body.get('product_id', '')).strip()
         quantity   = min(int(body.get('quantity', 1)), 20)
-        size       = str(body.get('selected_size', ''))[:50]
         embroidery = str(body.get('embroidery_name', ''))[:20]
         personal_message = str(body.get('personal_message', ''))[:200]
         if not product_id:
@@ -312,17 +308,27 @@ def cart_add(request):
     except (ValueError, TypeError, json.JSONDecodeError):
         return JsonResponse({'error': 'Données invalides.'}, status=400)
 
-    product = get_object_or_404(Product, id=product_id, is_active=True, is_available=True)
+    product = get_object_or_404(Product, id=product_id, is_active=True)
+
+    if not product.is_available:
+        return JsonResponse({'error': 'Ce produit est en rupture de stock.'}, status=400)
 
     cart = get_cart(request)
-    key  = _make_cart_key(product_id, size, embroidery)
+    key  = _make_cart_key(product_id, embroidery)
+
+    current_qty = cart.get(key, {}).get('qty', 0)
+    total_qty = current_qty + quantity
+
+    if product.stock_quantity is not None and total_qty > product.stock_quantity:
+        return JsonResponse({
+            'error': f'Stock insuffisant. Disponible : {product.stock_quantity}, dans le panier : {current_qty}.'
+        }, status=400)
 
     if key in cart:
-        cart[key]['qty'] = min(cart[key]['qty'] + quantity, 20)
+        cart[key]['qty'] = min(total_qty, 20)
     else:
         cart[key] = {
             'qty': quantity,
-            'size': size,
             'embroidery_name': embroidery,
             'personal_message': personal_message,
             'product_id': product_id,
@@ -351,16 +357,21 @@ def cart_update(request):
     if cart_key not in cart:
         return JsonResponse({'error': 'Article introuvable dans le panier.'}, status=404)
 
-    cart[cart_key]['qty'] = quantity
-    save_cart(request, cart)
-
-    # Extraire product_id de la clé composite
     try:
-        product_id = int(cart_key.split(':')[0])
+        product_id = str(cart_key.split(':')[0])
     except (ValueError, IndexError):
         return JsonResponse({'error': 'Clé panier invalide.'}, status=400)
 
-    product    = get_object_or_404(Product, id=product_id)
+    product = get_object_or_404(Product, id=product_id)
+
+    if product.stock_quantity is not None and quantity > product.stock_quantity:
+        return JsonResponse({
+            'error': f'Stock insuffisant. Disponible : {product.stock_quantity}.'
+        }, status=400)
+
+    cart[cart_key]['qty'] = quantity
+    save_cart(request, cart)
+
     line_total = product.price * quantity
     _, subtotal = cart_items_with_products(request)
 
@@ -401,13 +412,26 @@ def cart_count_view(request):
 
 
 # ------------------------------------------------------------------ #
-#  CHECKOUT — CORRIGÉ
+#  CHECKOUT
 # ------------------------------------------------------------------ #
 
 def checkout_view(request):
     items, subtotal = cart_items_with_products(request)
     if not items:
         messages.warning(request, 'Votre panier est vide.')
+        return redirect('shop:cart')
+
+    stock_errors = []
+    for item in items:
+        product = item['product']
+        if product.stock_quantity is not None and item['quantity'] > product.stock_quantity:
+            stock_errors.append(
+                f"{product.name} : stock insuffisant (disponible : {product.stock_quantity}, demandé : {item['quantity']})"
+            )
+
+    if stock_errors:
+        for error in stock_errors:
+            messages.error(request, error)
         return redirect('shop:cart')
 
     if request.method == 'POST':
@@ -440,8 +464,6 @@ def _process_checkout(request, items, subtotal):
     address      = clean(request.POST.get('delivery_address'), 500)
     instructions = clean(request.POST.get('delivery_instructions'), 300)
     payment_meth = request.POST.get('payment_method', 'cash')
-    embroidery   = clean(request.POST.get('embroidery_name'), 20)
-    pers_msg     = clean(request.POST.get('personal_message'), 200)
     promo_code   = request.POST.get('promo_code', '').upper().strip()[:30]
 
     if len(first_name) < 2:
@@ -469,6 +491,14 @@ def _process_checkout(request, items, subtotal):
     total = subtotal - discount
 
     with transaction.atomic():
+        for item in items:
+            product = item['product']
+            qty = item['quantity']
+            fresh_product = Product.objects.select_for_update().get(pk=product.pk)
+            if fresh_product.stock_quantity is not None and qty > fresh_product.stock_quantity:
+                messages.error(request, f'{fresh_product.name} est en rupture de stock.')
+                return redirect('shop:checkout')
+
         order = Order.objects.create(
             user=request.user if request.user.is_authenticated else None,
             customer_first_name=first_name,
@@ -493,16 +523,15 @@ def _process_checkout(request, items, subtotal):
                 product_name=product.name,
                 unit_price=product.price,
                 quantity=qty,
-                selected_size=item.get('size', ''),
                 embroidery_name=item.get('embroidery_name', ''),
+                personal_message=item.get('personal_message', ''),
             )
-            if product.stock_quantity > 0:
+            if product.stock_quantity is not None and product.stock_quantity > 0:
                 Product.objects.filter(pk=product.pk).update(
                     stock_quantity=F('stock_quantity') - qty,
                     sales_count=F('sales_count') + qty,
                 )
 
-    # CORRECTION : vider le panier SEULEMENT après création réussie
     save_cart(request, {})
 
     try:
@@ -562,7 +591,7 @@ def wishlist_view(request):
 
 @require_POST
 def wishlist_toggle(request):
-    """AJAX — Toggle favori"""
+    """AJAX — Toggle favori (session + DB pour users authentifiés)"""
     try:
         body       = json.loads(request.body)
         product_id = str(body.get('product_id', '')).strip()
@@ -578,9 +607,19 @@ def wishlist_toggle(request):
         wishlist.add(product_id)
     else:
         wishlist.discard(product_id)
-
     request.session['chicshop_wishlist'] = list(wishlist)
     request.session.modified = True
+
+    if request.user.is_authenticated:
+        try:
+            from apps.accounts.models import UserWishlist
+            if action == 'add':
+                UserWishlist.objects.get_or_create(user=request.user, product_id=product_id)
+            else:
+                UserWishlist.objects.filter(user=request.user, product_id=product_id).delete()
+        except Exception:
+            pass
+
     return JsonResponse({'wishlist_count': len(wishlist)})
 
 
@@ -609,7 +648,23 @@ def account_view(request):
 # ------------------------------------------------------------------ #
 
 def _get_wishlist_ids(request):
-    return list(request.session.get('chicshop_wishlist', []))
+    """Récupère les IDs wishlist (session + DB pour users auth)"""
+    session_ids = list(request.session.get('chicshop_wishlist', []))
+
+    if request.user.is_authenticated:
+        try:
+            from apps.accounts.models import UserWishlist
+            db_ids = list(
+                UserWishlist.objects.filter(user=request.user)
+                .values_list('product_id', flat=True)
+            )
+            all_ids = list(set(session_ids + db_ids))
+            request.session['chicshop_wishlist'] = all_ids
+            return all_ids
+        except Exception:
+            pass
+
+    return session_ids
 
 
 def _time_ago(dt):

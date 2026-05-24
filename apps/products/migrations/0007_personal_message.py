@@ -25,13 +25,4 @@ class Migration(migrations.Migration):
                 help_text="Nombre max de caractères pour le message personnalisé"
             ),
         ),
-        migrations.AddField(
-            model_name='product',
-            name='available_sizes',
-            field=models.JSONField(
-                default=list,
-                blank=True,
-                help_text="Ex: [\'60x90 cm\', \'70x110 cm\', \'80x120 cm\']"
-            ),
-        ),
     ]
