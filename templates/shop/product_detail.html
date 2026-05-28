@@ -203,7 +203,7 @@
     {% if product.allows_personal_message %}
     <div class="name-input-block" id="personalMsgBlock">
       <label for="personalMsgInput">
-        ✉️ Message personnalisé brodé
+        ✉️ Message personnalisé 
         <span style="color:var(--muted);font-size:11px;font-weight:400">— optionnel</span>
       </label>
       <input type="text"
@@ -212,8 +212,10 @@
              maxlength="{{ product.max_message_chars|default:100 }}"
              style="margin-bottom:4px">
       <small style="color:var(--muted);font-size:11px;display:block">
-        Ce message sera personnalisé sur votre tapis avec la même calligraphie dorée.
+        Ce message sera personnalisé sur votre tapis.
       </small>
+            <div class="name-preview" id="pdNamePreview" aria-live="polite">Votre messages</div>
+
     </div>
     {% endif %}
 
@@ -227,7 +229,7 @@
       </div>
       {% if product.stock_quantity %}
       <small style="color:var(--muted);font-size:11px;margin-left:10px">
-        Max : {{ product.stock_quantity }}
+        {{ product.stock_quantity }}: Tapis Restant
       </small>
       {% endif %}
     </div>

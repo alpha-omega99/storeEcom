@@ -51,14 +51,6 @@
         <span class="disc">-{{ product.discount_percent }}%</span>
       {% endif %}
     </div>
-
-    <!-- CORRECTION : onclick propre avec stopPropagation -->
-    <button class="pcard-btn"
-            onclick="event.stopPropagation(); addToCart('{{ product.id }}', '{{ product.name|escapejs }}', {{ product.price }}, '{{ product.emoji|escapejs }}')"
-            aria-label="Ajouter {{ product.name }} au panier"
-            type="button">
-      🛒 Ajouter au panier
-    </button>
   </div>
 
 </article>

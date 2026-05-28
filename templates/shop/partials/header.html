@@ -32,7 +32,7 @@
         <span>{% if request.user.is_authenticated %}{{ request.user.first_name }}{% else %}Compte{% endif %}</span>
       </a>
       <a href="{% url 'shop:cart' %}" id="openCartDrawer" class="header-cart">
-        🛒 <span class="cart-badge">{{ cart_count|default:0 }}</span><span>Panier</span>
+        🛒 <span class="cart-badge">{{ cart_count|default:0 }}</span> <br/><span>Panier</span>
       </a>
     </div>
 

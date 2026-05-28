@@ -133,7 +133,8 @@ class OrderItem(models.Model):
     product_name = models.CharField(max_length=200)
     unit_price = models.DecimalField(max_digits=10, decimal_places=0)
     quantity = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
-
+    embroidery_name = models.CharField(max_length=20, blank=True)
+    personal_message = models.CharField(max_length=200, blank=True)
     class Meta:
         verbose_name = "ligne de commande"
 

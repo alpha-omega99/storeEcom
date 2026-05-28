@@ -51,10 +51,12 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     const track = document.querySelector('.carousel-track');
+    if (!track) return; // Pas de carrousel sur cette page
     const slides = Array.from(track.children);
     const nextButton = document.querySelector('.next-btn');
     const prevButton = document.querySelector('.prev-btn');
     const dotsNav = document.querySelector('.carousel-nav');
+    if (!nextButton || !prevButton || !dotsNav) return; //elements manquants
     const dots = Array.from(dotsNav.children);
 
     let currentIndex = 0;

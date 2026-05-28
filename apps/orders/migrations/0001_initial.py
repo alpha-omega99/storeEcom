@@ -62,6 +62,8 @@ class Migration(migrations.Migration):
                 ('selected_size', models.CharField(blank=True, max_length=50)),
                 ('order', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='orders.order')),
                 ('product', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='order_items', to='products.product')),
+                ('embroidery_name', models.CharField(blank=True, max_length=20)),
+                ('personal_message', models.CharField(blank=True, max_length=200)),
             ],
             options={
                 'verbose_name': 'ligne de commande',

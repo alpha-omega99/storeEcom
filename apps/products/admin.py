@@ -26,7 +26,7 @@ class ProductAdmin(admin.ModelAdmin):
         ('Description', {'fields': ('description', 'short_description', 'included_items',)}),
         ('Tarification', {'fields': ('price', 'original_price')}),
         ('Stock & Disponibilité', {'fields': ('stock_quantity', 'is_available', 'is_active', 'is_featured')}),
-        ('Personnalisation', {'fields': ('allows_embroidery', 'max_embroidery_chars')}),
+        ('Personnalisation', {'fields': ('allows_embroidery', 'max_embroidery_chars', 'allows_personal_message', 'max_message_chars', 'embroidery_required')}),
         ('Statistiques', {'fields': ('views_count', 'sales_count', 'created_at', 'updated_at')}),
     )
 

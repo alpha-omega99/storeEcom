@@ -69,6 +69,7 @@ class Product(models.Model):
 
     # Personnalisation broderie
     allows_embroidery = models.BooleanField(default=True)
+    embroidery_required = models.BooleanField(default=True, help_text="si coché, le prénom est obligatoire avant d'ajouter au panier.")
     max_embroidery_chars = models.PositiveSmallIntegerField(default=20)
 
     # Message personnalisé (disponible pour les packs >= 11 000 F)

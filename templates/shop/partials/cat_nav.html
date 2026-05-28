@@ -1,24 +1,22 @@
 <!-- CAT NAV -->
 <nav class="cat-nav" aria-label="Catégories">
-  <div class="cat-nav-inner">
-    <a class="cat-btn {% if current_cat == 'all' or not current_cat %}active{% endif %}"
-       href="{% url 'shop:home' %}">🏠 Accueil</a>
-    {% for cat in categories %}
-    <a class="cat-btn {% if current_cat == cat.slug %}active{% endif %}"
-       href="{% url 'shop:catalog_category' cat.slug %}">
-      {{ cat.icon }} {{ cat.name }}
-    </a>
-    {% empty %}
-    <a class="cat-btn {% if current_cat == 'pack' %}active{% endif %}"
-       href="{% url 'shop:catalog_category' 'pack' %}">🎁 Packs cadeaux</a>
-    <a class="cat-btn {% if current_cat == 'tapis' %}active{% endif %}"
-       href="{% url 'shop:catalog_category' 'tapis' %}">🕌 Tapis de prière</a>
-    <a class="cat-btn {% if current_cat == 'accessoire' %}active{% endif %}"
-       href="{% url 'shop:catalog_category' 'accessoire' %}">✨ Accessoires</a>
-    <a class="cat-btn {% if current_cat == 'mariage' %}active{% endif %}"
-       href="{% url 'shop:catalog_category' 'mariage' %}">💍 Mariage & Hajj</a>
-    {% endfor %}
-    <a class="cat-btn {% if request.resolver_match.url_name == 'promotions' %}active{% endif %}"
-       href="{% url 'shop:promotions' %}">🔥 Promotions</a>
-  </div>
+   <div class="cat-nav-inner">
+      <a class="cat-btn {% if current_cat == 'all' or not current_cat %}active{% endif %}"
+         href="{% url 'shop:home' %}">🏠 Accueil</a>
+      {% for cat in categories %}
+         <a class="cat-btn {% if current_cat == cat.slug %}active{% endif %}"
+            href="{% url 'shop:catalog_category' cat.slug %}">
+            {{ cat.icon }} {{ cat.name }}
+         </a>
+      {% empty %}
+         <a class="cat-btn {% if current_cat == 'pack' %}active{% endif %}"
+            href="{% url 'shop:home' 'packs-section' %}">🎁 Packs cadeaux</a>
+         <a class="cat-btn {% if current_cat == 'tapis' %}active{% endif %}"
+            href="{% url 'shop:catalog_category' 'pack' %}">🕌 Tapis de prière</a>
+         <a class="cat-btn {% if current_cat == 'accessoire' %}active{% endif %}"
+            href="{% url 'shop:catalog_category' 'accessoire' %}">✨ Accessoires</a>
+      {% endfor %}
+         <a class="cat-btn {% if request.resolver_match.url_name == 'promotions' %}active{% endif %}"
+            href="{% url 'shop:promotions' %}">🔥 Promotions</a>
+   </div>
 </nav>
