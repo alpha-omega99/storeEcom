@@ -61,3 +61,30 @@ REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = [
 # ============================================================
 LOGGING['loggers']['django']['level'] = 'WARNING'
 LOGGING['loggers']['chicshop']['level'] = 'WARNING'
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Fichiers statiques
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Autoriser Render
+ALLOWED_HOSTS = ['*']  # Ou spécifiez votre URL Render plus tard
+
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',       # Static files
+    'corsheaders.middleware.CorsMiddleware',             # CORS avant CommonMiddleware
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',         # Protection CSRF
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',  # Anti-clickjacking
+    'apps.accounts.middleware.SecurityHeadersMiddleware', # Headers custom
+    'apps.accounts.middleware.RequestLoggingMiddleware',  # Audit log
+]

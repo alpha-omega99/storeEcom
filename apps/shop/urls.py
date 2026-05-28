@@ -1,9 +1,4 @@
-"""
-ChicShop — URLs du shop (frontend)
-À inclure dans config/urls.py :
 
-    path('', include('apps.shop.urls', namespace='shop')),
-"""
 from django.urls import path
 from . import views
 
