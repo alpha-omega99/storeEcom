@@ -180,3 +180,17 @@ function initWishlistButtons() {
 }
 
 document.addEventListener('DOMContentLoaded', initWishlistButtons);
+
+// Ajouter dans utils.js
+async function removeFromCart(cartKey) {
+    try {
+        var res = await apiPost('/panier/supprimer/', { cart_key: cartKey });
+        if (!res || res.error) throw new Error(res.error || 'Erreur de suppression');
+        updateCartBadge(res.cart_count);
+        if (typeof refreshMiniCart === 'function') refreshMiniCart();
+        return res;
+    } catch (err) {
+        console.error('[removeFromCart]', err);
+        showToast('❌ ' + err.message, 'error');
+    }
+}

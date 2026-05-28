@@ -689,10 +689,15 @@ def mini_cart_api(request):
     """Renvoie les données réelles du mini-panier au format JSON pour le cart_drawer"""
     cart = request.session.get('chicshop_cart', {})
     
-    response_data = {
-        'items': [],
-        'subtotal': 0
-    }
+    # Dans mini_cart_api, vers la fin
+    response_data['items'].append({
+        'cart_key': item_key,  # ← Doit être 'cart_key'
+        'name': product.name,
+        'quantity': quantity,
+        'price': price,
+        'line_total': line_total,
+        'image': image_url,
+    })
     
     subtotal = 0
     

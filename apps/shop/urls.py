@@ -25,6 +25,7 @@ urlpatterns = [
     path('panier/ajouter/',    views.cart_add,        name='cart_add'),
     path('panier/modifier/',   views.cart_update,     name='cart_update'),
     path('panier/supprimer/',  views.cart_remove,     name='cart_remove'),
+    path('panier/mini/',       views.mini_cart_api,   name='mini_cart_api'),  # ← AJOUTER CETTE LIGNE
 
     # ===== COMMANDE =====
     path('commander/',                          views.checkout_view, name='checkout'),
@@ -38,5 +39,5 @@ urlpatterns = [
     
     path('compte/',            views.account_view,    name='account'),
     # Exemple dans tes urls.py — l'URL doit pointer vers une vraie JsonResponse, sans redirection !
-    path('panier/mini/', views.mini_cart_api, name='mini_cart_api'),
+    path('panier/mini/',       views.mini_cart_api,   name='mini_cart_api'),  # ← AJOUTER CETTE LIGNE
 ]

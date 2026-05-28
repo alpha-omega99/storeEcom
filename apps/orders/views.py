@@ -156,12 +156,6 @@ class OrderCreateRateThrottle(AnonRateThrottle):
 
 
 class OrderCreateView(generics.GenericAPIView):
-    """
-    Créer une commande.
-    - Authentification optionnelle (commandes invités)
-    - Recalcul des prix côté serveur (jamais faire confiance au client)
-    - Transaction atomique
-    """
     serializer_class = OrderCreateSerializer
     permission_classes = [AllowAny]
     throttle_classes = [OrderCreateRateThrottle]

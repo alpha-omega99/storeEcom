@@ -78,7 +78,7 @@
           + '  <div class="cd-item-img">' + (it.image ? '<img src="'+it.image+'" alt="">' : (it.emoji||'')) + '</div>'
           + '  <div>'
           + '    <div class="cd-item-name">'+ it.name +'</div>'
-          + '    <div class="cd-item-meta">Qté '+ it.quantity + (it.size?' · '+it.size:'') +'</div>'
+          + '    <div class="cd-item-meta">Qté '+ it.quantity) +'</div>'
           + '    <button class="cd-item-remove" onclick="removeFromCart(\''+ it.cart_key +'\').then(refreshMiniCart)">Retirer</button>'
           + '  </div>'
           + '  <div class="cd-item-price">'+ Number(it.line_total).toLocaleString('fr-FR') +' F</div>'

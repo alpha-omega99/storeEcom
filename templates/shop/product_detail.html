@@ -252,7 +252,7 @@
         💸 Acheter maintenant
       </button>
 
-      <!-- Favoris -->
+       <!--Favoris -->
       <button class="pwish {% if product.id|stringformat:'s' in wishlist_ids %}active{% endif %}"
               data-product-id="{{ product.id }}"
               onclick="toggleWish('{{ product.id }}', this)"
