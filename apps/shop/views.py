@@ -41,8 +41,9 @@ def save_cart(request, cart):
 
 
 def cart_count(request):
-    return sum(item.get('qty', 1) for item in get_cart(request).values())
-
+    """Retourne le nombre total d'articles dans le panier"""
+    cart = request.session.get('chicshop_cart', {})
+    return sum(item.get('qty', 1) for item in cart.values())
 
 def _make_cart_key(product_id, embroidery):
     """Crée une clé unique pour chaque variante de produit."""
@@ -421,6 +422,7 @@ def checkout_view(request):
         messages.warning(request, 'Votre panier est vide.')
         return redirect('shop:cart')
 
+    # Vérification des stocks
     stock_errors = []
     for item in items:
         product = item['product']
@@ -435,37 +437,45 @@ def checkout_view(request):
         return redirect('shop:cart')
 
     if request.method == 'POST':
-        return _process_checkout(request, items, subtotal)
+        logger.info(f"=== CHECKOUT POST RECEIVED ===")
+        logger.info(f"POST data: {request.POST}")
+        result = _process_checkout(request, items, subtotal)
+        logger.info(f"Redirect result: {result}")
+        return result
 
     communes = [
         'Cocody', 'Yopougon', 'Plateau', 'Marcory', 'Abobo',
         'Adjamé', 'Treichville', 'Koumassi', 'Bingerville',
         'Attécoubé', 'Port-Bouët', 'Songon',
     ]
+
     return render(request, 'shop/checkout.html', {
         'cart_items': items,
-        'subtotal':   subtotal,
-        'communes':   communes,
+        'subtotal': subtotal,
+        'communes': communes,
     })
 
 
 def _process_checkout(request, items, subtotal):
     import re, bleach
     from django.db import transaction
+    from apps.orders.models import Order, OrderItem
+    from apps.products.models import PromoCode, Product
 
     def clean(val, max_len=200):
         return bleach.clean(str(val or '').strip(), tags=[], strip=True)[:max_len]
 
-    first_name   = clean(request.POST.get('customer_first_name'), 50)
-    last_name    = clean(request.POST.get('customer_last_name'), 50)
-    phone        = re.sub(r'[\s\-\.\(\)]', '', request.POST.get('customer_phone', ''))
-    email        = request.POST.get('customer_email', '').strip().lower()[:254]
-    city         = clean(request.POST.get('delivery_city'), 100)
-    address      = clean(request.POST.get('delivery_address'), 500)
+    first_name = clean(request.POST.get('customer_first_name'), 50)
+    last_name = clean(request.POST.get('customer_last_name'), 50)
+    phone = re.sub(r'[\s\-\.\(\)]', '', request.POST.get('customer_phone', ''))
+    email = request.POST.get('customer_email', '').strip().lower()[:254]
+    city = clean(request.POST.get('delivery_city'), 100)
+    address = clean(request.POST.get('delivery_address'), 500)
     instructions = clean(request.POST.get('delivery_instructions'), 300)
     payment_meth = request.POST.get('payment_method', 'cash')
-    promo_code   = request.POST.get('promo_code', '').upper().strip()[:30]
+    promo_code = request.POST.get('promo_code', '').upper().strip()[:30]
 
+    # Validations
     if len(first_name) < 2:
         messages.error(request, 'Prénom invalide.')
         return redirect('shop:checkout')
@@ -475,22 +485,25 @@ def _process_checkout(request, items, subtotal):
     if payment_meth not in ('orange_money', 'wave', 'cash'):
         payment_meth = 'cash'
 
-    discount   = Decimal(0)
+    # Calcul promo
+    discount = Decimal(0)
     promo_used = ''
 
     if promo_code:
         try:
             promo = PromoCode.objects.select_for_update().get(code=promo_code)
             if promo.is_valid(float(subtotal)):
-                discount   = round(subtotal * promo.discount_percent / 100)
+                discount = round(subtotal * promo.discount_percent / 100)
                 promo_used = promo_code
-                PromoCode.objects.filter(pk=promo.pk).update(current_uses=F('current_uses') + 1)
+                PromoCode.objects.filter(pk=promo.pk).update(current_models.F('current_uses') + 1)
         except PromoCode.DoesNotExist:
             pass
 
     total = subtotal - discount
 
+    # Création commande
     with transaction.atomic():
+        # Vérifier stock final
         for item in items:
             product = item['product']
             qty = item['quantity']
@@ -499,6 +512,7 @@ def _process_checkout(request, items, subtotal):
                 messages.error(request, f'{fresh_product.name} est en rupture de stock.')
                 return redirect('shop:checkout')
 
+        # Créer la commande
         order = Order.objects.create(
             user=request.user if request.user.is_authenticated else None,
             customer_first_name=first_name,
@@ -514,9 +528,11 @@ def _process_checkout(request, items, subtotal):
             total_amount=total,
             promo_code=promo_used,
         )
+        
+        # Créer les items
         for item in items:
             product = item['product']
-            qty     = item['quantity']
+            qty = item['quantity']
             OrderItem.objects.create(
                 order=order,
                 product=product,
@@ -526,27 +542,29 @@ def _process_checkout(request, items, subtotal):
                 embroidery_name=item.get('embroidery_name', ''),
                 personal_message=item.get('personal_message', ''),
             )
+            
+            # Mise à jour stock
             if product.stock_quantity is not None and product.stock_quantity > 0:
                 Product.objects.filter(pk=product.pk).update(
-                    stock_quantity=F('stock_quantity') - qty,
-                    sales_count=F('sales_count') + qty,
+                    stock_quantity=models.F('stock_quantity') - qty,
+                    sales_count=models.F('sales_count') + qty,
                 )
 
+    # Vider le panier
     save_cart(request, {})
 
+    # Notifications (optionnelles)
     try:
-        from apps.accounts.tasks import (
-            send_order_confirmation_email,
-            notify_admin_new_order_whatsapp,
-        )
+        from apps.accounts.tasks import send_order_confirmation_email, notify_admin_new_order_whatsapp
         send_order_confirmation_email.delay(str(order.id))
         notify_admin_new_order_whatsapp.delay(str(order.id))
     except Exception as e:
         logger.error(f'Notifications commande {order.reference}: {e}')
 
     logger.info(f'Commande créée: {order.reference} — {order.total_amount} F')
+    
+    # ✅ CRUCIAL : rediriger vers la page de succès
     return redirect('shop:success', reference=order.reference)
-
 
 # ------------------------------------------------------------------ #
 #  SUCCESS
@@ -689,22 +707,15 @@ def mini_cart_api(request):
     """Renvoie les données réelles du mini-panier au format JSON pour le cart_drawer"""
     cart = request.session.get('chicshop_cart', {})
     
-    # Dans mini_cart_api, vers la fin
-    response_data['items'].append({
-        'cart_key': item_key,  # ← Doit être 'cart_key'
-        'name': product.name,
-        'quantity': quantity,
-        'price': price,
-        'line_total': line_total,
-        'image': image_url,
-    })
+    response_data = {
+        'items': [],
+        'subtotal': 0,
+    }
     
     subtotal = 0
     
-    # On parcourt les éléments du panier en session
     for item_key, item_data in cart.items():
         try:
-            # On récupère l'ID du produit (généralement stocké dans item_data)
             product_id = item_data.get('product_id') or item_data.get('id')
             if not product_id:
                 continue
@@ -712,16 +723,16 @@ def mini_cart_api(request):
             product = Product.objects.get(id=product_id)
             
             quantity = int(item_data.get('qty', 1))
-            price = float(product.price)  # Ou item_data.get('price') si tu stockes le prix figé
+            price = float(product.price)
             line_total = price * quantity
             subtotal += line_total
             
-            # Récupération sécurisée de l'image
-            image_url = product.images.first().image.url if product.images.exists() else None
-            if not image_url and product.image:  # Si tu as un champ image direct sur le produit
+            image_url = None
+            if hasattr(product, 'images') and product.images.exists():
+                image_url = product.images.first().image.url
+            elif hasattr(product, 'image') and product.image:
                 image_url = product.image.url
 
-            # On construit l'item au format attendu par ton JavaScript
             response_data['items'].append({
                 'cart_key': item_key,
                 'name': product.name,
@@ -731,7 +742,6 @@ def mini_cart_api(request):
                 'image': image_url,
             })
         except (Product.DoesNotExist, ValueError, TypeError):
-            # Si un produit a été supprimé du catalogue entre-temps, on passe sans faire crasher le panier
             continue
 
     response_data['subtotal'] = subtotal

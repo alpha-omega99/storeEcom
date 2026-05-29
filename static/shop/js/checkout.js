@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!/^[\w\s\u00C0-\u017F\-'']+$/u.test(emb.value.trim())) {
                 markError(emb, 'Le prénom ne peut contenir que des lettres');
                 valid = false;
-                errors.push('Prénom broderie');
+                errors.push('Prénom personnalisé');
             }
         }
 

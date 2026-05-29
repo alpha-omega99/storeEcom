@@ -39,5 +39,4 @@ urlpatterns = [
     
     path('compte/',            views.account_view,    name='account'),
     # Exemple dans tes urls.py — l'URL doit pointer vers une vraie JsonResponse, sans redirection !
-    path('panier/mini/',       views.mini_cart_api,   name='mini_cart_api'),  # ← AJOUTER CETTE LIGNE
 ]

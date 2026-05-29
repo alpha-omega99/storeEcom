@@ -111,7 +111,6 @@ Product.objects.create(
     stock_quantity=50,
     description="Le pack idéal pour débuter...",
     included_items=["Tapis brodé", "Chapelet", "Emballage cadeau"],
-    available_sizes=["60×90 cm", "70×110 cm", "80×120 cm"],
 )
 
 # Code promo

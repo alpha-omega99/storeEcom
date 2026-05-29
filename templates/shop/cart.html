@@ -2,101 +2,618 @@
 {% load static %}
 
 {% block title %}Mon Panier — ChicShop{% endblock %}
+
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'shop/css/_atelier-tokens.css' %}">
-<link rel="stylesheet" href="{% static 'shop/css/cart.css' %}">
+<style>
+  .cart-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+  
+  .cart-layout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 2rem;
+  }
+  
+  /* Liste des produits */
+  .cart-items {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    overflow: hidden;
+  }
+  
+  .cart-header {
+    padding: 1.25rem 1.5rem;
+    background: #faf8f4;
+    border-bottom: 1px solid #eee;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #666;
+  }
+  
+  .cart-item {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    border-bottom: 1px solid #eee;
+    transition: all 0.3s ease;
+  }
+  
+  .cart-item:hover {
+    background: #fefcf8;
+  }
+  
+  /* Image produit */
+  .ci-img {
+    width: 100px;
+    height: 100px;
+    flex-shrink: 0;
+    background: #f5f0e8;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  
+  .ci-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .ci-img-placeholder {
+    font-size: 2.5rem;
+  }
+  
+  /* Détails produit */
+  .ci-details {
+    flex: 1;
+  }
+  
+  .ci-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem;
+  }
+  
+  .ci-name a {
+    color: inherit;
+    text-decoration: none;
+  }
+  
+  .ci-name a:hover {
+    color: #c9a03d;
+  }
+  
+  .ci-opts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .ci-opt {
+    font-size: 0.75rem;
+    background: #f0ede8;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    color: #666;
+  }
+  
+  .ci-opt.recipient {
+    background: #fef0d9;
+    color: #c9a03d;
+  }
+  
+  /* Contrôle quantité */
+  .ci-qty {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .ci-qty button {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid #ddd;
+    background: white;
+    cursor: pointer;
+    font-size: 1.2rem;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  
+  .ci-qty button:hover {
+    background: #c9a03d;
+    border-color: #c9a03d;
+    color: white;
+  }
+  
+  .ci-qty span {
+    font-size: 1rem;
+    font-weight: 500;
+    min-width: 30px;
+    text-align: center;
+  }
+  
+  .ci-remove {
+    background: none;
+    border: none;
+    color: #e74c3c;
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 0;
+    opacity: 0.7;
+  }
+  
+  .ci-remove:hover {
+    opacity: 1;
+    text-decoration: underline;
+  }
+  
+  /* Prix */
+  .ci-price {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #c9a03d;
+    text-align: right;
+    min-width: 120px;
+  }
+  
+  /* Résumé commande */
+  .cart-summary {
+    background: #faf8f4;
+    border-radius: 20px;
+    padding: 1.5rem;
+    height: fit-content;
+    position: sticky;
+    top: 20px;
+  }
+  
+  .cs-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #c9a03d;
+  }
+  
+  .cs-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    font-size: 0.95rem;
+  }
+  
+  .cs-row.total {
+    font-size: 1.2rem;
+    font-weight: 700;
+    border-top: 2px solid #ddd;
+    margin-top: 0.5rem;
+    padding-top: 1rem;
+    color: #c9a03d;
+  }
+  
+  .promo-box {
+    display: flex;
+    gap: 0.5rem;
+    margin: 1rem 0;
+  }
+  
+  .promo-box input {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 40px;
+    font-size: 0.9rem;
+  }
+  
+  .promo-box button {
+    padding: 0.75rem 1.25rem;
+    background: #333;
+    color: white;
+    border: none;
+    border-radius: 40px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  
+  .promo-box button:hover {
+    background: #c9a03d;
+  }
+  
+  .promo-msg {
+    font-size: 0.8rem;
+    margin-top: -0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .promo-msg.success {
+    color: #2d6e2d;
+  }
+  
+  .promo-msg.error {
+    color: #e74c3c;
+  }
+  
+  .checkout-btn {
+    display: block;
+    width: 100%;
+    padding: 1rem;
+    background: #c9a03d;
+    color: white;
+    text-align: center;
+    border: none;
+    border-radius: 40px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 1rem;
+  }
+  
+  .checkout-btn:hover {
+    background: #b08a2d;
+    transform: translateY(-2px);
+  }
+  
+  .continue-shop {
+    display: block;
+    text-align: center;
+    margin-top: 1rem;
+    color: #666;
+    font-size: 0.85rem;
+  }
+  
+  /* Panier vide */
+  .cart-empty {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: #faf8f4;
+    border-radius: 24px;
+  }
+  
+  .cart-empty .icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+  }
+  
+  .cart-empty h3 {
+    margin-bottom: 0.5rem;
+  }
+  
+  .cart-empty p {
+    color: #666;
+    margin-bottom: 1.5rem;
+  }
+  
+  .btn-gold {
+    background: #c9a03d;
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 40px;
+    text-decoration: none;
+    display: inline-block;
+  }
+  
+  /* Produits suggérés */
+  .suggested-section {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid #eee;
+  }
+  
+  .suggested-title {
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .suggested-title span {
+    color: #c9a03d;
+  }
+  
+  .suggested-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .suggested-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  
+  .suggested-img {
+    width: 100%;
+    height: 140px;
+    background: #f5f0e8;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .suggested-name {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  
+  .suggested-price {
+    color: #c9a03d;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+  }
+  
+  .suggested-btn {
+    background: #c9a03d;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 40px;
+    cursor: pointer;
+    font-size: 0.8rem;
+  }
+  
+  @media (max-width: 768px) {
+    .cart-layout {
+      grid-template-columns: 1fr;
+    }
+    
+    .cart-item {
+      flex-wrap: wrap;
+    }
+    
+    .ci-price {
+      text-align: left;
+      width: 100%;
+      margin-left: 116px;
+    }
+  }
+</style>
 {% endblock %}
 
 {% block content %}
-<h1 class="page-title">Votre <span>panier</span></h1>
 
-{% if cart_items %}
-<div class="cart-layout">
+<div class="cart-container">
+  <h1 class="page-title">Mon <span>Panier</span></h1>
 
-  <div class="cart-items">
-    <div class="cart-header">
-      {{ cart_items|length }} article{{ cart_items|length|pluralize }} dans votre panier
-    </div>
+  {% if cart_items %}
+  <div class="cart-layout">
 
-    {% for item in cart_items %}
-    <div class="cart-item" id="ci-{{ forloop.counter }}" data-cart-key="{{ item.cart_key }}">
-      <div class="ci-img">
-        {% if item.product.image %}
-          <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
-        {% else %}
-          {{ item.product.emoji }}
-        {% endif %}
+    <div class="cart-items">
+      <div class="cart-header">
+        📦 {{ cart_items|length }} article{{ cart_items|length|pluralize }}
       </div>
 
-      <div class="ci-details">
-        <div class="ci-name">{{ item.product.name }}</div>
-
-        <div class="ci-opts">
-          {% if item.size %}<span class="ci-opt recipient">Pour&nbsp;: {{ item.size }}</span>{% endif %}
-          {% if item.embroidery_name %}<span class="ci-opt">Broderie&nbsp;: {{ item.embroidery_name }}</span>{% endif %}
-          {% if item.personal_message %}<span class="ci-opt">{{ item.personal_message|truncatechars:30 }}</span>{% endif %}
+      {% for item in cart_items %}
+      <div class="cart-item" data-cart-key="{{ item.cart_key }}" id="cart-item-{{ forloop.counter }}">
+        
+        <div class="ci-img">
+          {% if item.product.image %}
+            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+          {% else %}
+            <div class="ci-img-placeholder">{{ item.product.emoji|default:"🕌" }}</div>
+          {% endif %}
         </div>
 
-        <div class="ci-qty">
-          <button onclick="updateCartQty('{{ item.cart_key|escapejs }}', -1)" type="button" aria-label="Diminuer">−</button>
-          <span id="qty-{{ forloop.counter }}">{{ item.quantity }}</span>
-          <button onclick="updateCartQty('{{ item.cart_key|escapejs }}', 1)" type="button" aria-label="Augmenter">+</button>
+        <div class="ci-details">
+          <div class="ci-name">
+            <a href="{% url 'shop:product_detail' item.product.slug %}">{{ item.product.name }}</a>
+          </div>
+          
+          <div class="ci-opts">
+            {% if item.embroidery_name %}
+              <span class="ci-opt">✏️ Broderie: {{ item.embroidery_name }}</span>
+            {% endif %}
+            {% if item.personal_message %}
+              <span class="ci-opt">💬 {{ item.personal_message|truncatechars:30 }}</span>
+            {% endif %}
+          </div>
+
+          <div class="ci-qty">
+            <button onclick="updateCartQty('{{ item.cart_key }}', -1)" type="button">−</button>
+            <span id="qty-{{ forloop.counter }}">{{ item.quantity }}</span>
+            <button onclick="updateCartQty('{{ item.cart_key }}', 1)" type="button">+</button>
+          </div>
+
+          <button class="ci-remove" onclick="removeFromCart('{{ item.cart_key }}')" type="button">
+            🗑 Retirer
+          </button>
         </div>
 
-        <br>
-        <button class="ci-remove" onclick="removeFromCart('{{ item.cart_key|escapejs }}')" type="button">
-          Retirer
-        </button>
+        <div class="ci-price" id="price-{{ forloop.counter }}">
+          {{ item.line_total|floatformat:0 }} F
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <aside class="cart-summary">
+      <div class="cs-title">🧾 Récapitulatif</div>
+
+      <div class="cs-row">
+        <span>Sous-total</span>
+        <span id="cartSubtotal">{{ subtotal|floatformat:0 }} F</span>
+      </div>
+      
+      <div class="cs-row">
+        <span>Livraison</span>
+        <span>Gratuite</span>
       </div>
 
-      <div class="ci-price" id="price-{{ forloop.counter }}">
-        {{ item.line_total|floatformat:0 }} F
+      <div class="promo-box">
+        <input type="text" id="promoCode" placeholder="Code promo (CHICSHOP15)">
+        <button onclick="applyPromoCode()" type="button">Appliquer</button>
       </div>
-    </div>
-    {% endfor %}
+      <div id="promoMsg" class="promo-msg"></div>
+
+      <div class="cs-row total">
+        <span>Total</span>
+        <span id="cartTotal">{{ subtotal|floatformat:0 }} F</span>
+      </div>
+
+      <a href="{% url 'shop:checkout' %}" class="checkout-btn" id="checkoutBtn">
+        ✅ Commander
+      </a>
+      
+      <a href="{% url 'shop:catalog' %}" class="continue-shop">
+        ← Continuer mes achats
+      </a>
+    </aside>
+
   </div>
 
-  <aside class="cart-summary">
-    <div class="cs-title">Récapitulatif</div>
-
-    <div class="cs-row">
-      <span>Sous-total</span>
-      <span id="cartSubtotal">{{ subtotal|floatformat:0 }} F CFA</span>
+  <!-- Produits suggérés -->
+  {% if suggested_products %}
+  <div class="suggested-section">
+    <div class="suggested-title">💡 Vous aimerez <span>aussi</span></div>
+    <div class="suggested-grid">
+      {% for product in suggested_products %}
+      <div class="suggested-card">
+        <div class="suggested-img">
+          {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width:100%;height:100%;object-fit:cover;border-radius:12px">
+          {% else %}
+            {{ product.emoji|default:"🕌" }}
+          {% endif %}
+        </div>
+        <div class="suggested-name">{{ product.name }}</div>
+        <div class="suggested-price">{{ product.price|floatformat:0 }} F</div>
+        <button class="suggested-btn" onclick="addToCart('{{ product.id }}', '{{ product.name|escapejs }}', {{ product.price }}, '')">
+          ➕ Ajouter
+        </button>
+      </div>
+      {% endfor %}
     </div>
-    <div class="cs-row">
-      <span>Livraison</span>
-      <span>{% if shipping %}{{ shipping|floatformat:0 }} F{% else %}Calculée à l'étape suivante{% endif %}</span>
-    </div>
+  </div>
+  {% endif %}
 
-    <div class="promo-box">
-      <input type="text" id="promoCode" placeholder="Code promo">
-      <button onclick="applyPromoCode()" type="button">Appliquer</button>
-    </div>
-    <div id="promoMsg" class="promo-msg"></div>
-
-    <div class="cs-row total">
-      <span>Total</span>
-      <span id="cartTotal">{{ total|floatformat:0 }} F CFA</span>
-    </div>
-
-    <a href="{% url 'shop:checkout' %}" class="checkout-btn" id="checkoutBtn">
-      Procéder au paiement
-    </a>
-    <a href="{% url 'shop:home' %}" class="continue-shop">← Continuer mes achats</a>
-  </aside>
-
+  {% else %}
+  
+  <div class="cart-empty">
+    <div class="icon">🛍️</div>
+    <h3>Votre panier est vide</h3>
+    <p>Découvrez nos tapis personnalisés et faites vous plaisir !</p>
+    <a href="{% url 'shop:catalog' %}" class="btn-gold">✨ Découvrir la collection</a>
+  </div>
+  
+  {% endif %}
 </div>
 
-{% else %}
-<div class="cart-empty">
-  <div class="icon">🧺</div>
-  <h3>Votre panier est vide</h3>
-  <p>Découvrez nos pièces brodées à la main, pensées pour les moments précieux.</p>
-  <a href="{% url 'shop:home' %}" class="btn-ac">Découvrir la boutique</a>
-</div>
-{% endif %}
-{% endblock %}
+<script>
+  // Fonctions panier
+  async function updateCartQty(cartKey, delta) {
+    const item = document.querySelector(`[data-cart-key="${cartKey}"]`);
+    if (!item) return;
+    
+    const qtySpan = item.querySelector('[id^="qty-"]');
+    let currentQty = parseInt(qtySpan.textContent);
+    let newQty = Math.max(1, Math.min(20, currentQty + delta));
+    
+    if (newQty === currentQty) return;
+    
+    try {
+      const res = await apiPost('/panier/modifier/', { cart_key: cartKey, quantity: newQty });
+      if (!res || res.error) throw new Error(res.error);
+      
+      qtySpan.textContent = newQty;
+      const priceSpan = item.querySelector('[id^="price-"]');
+      if (priceSpan && res.line_total) priceSpan.textContent = Number(res.line_total).toLocaleString('fr-FR') + ' F';
+      if (res.subtotal) updateCartTotals(res.subtotal);
+      if (res.cart_count !== undefined) updateCartBadge(res.cart_count);
+      
+    } catch(err) {
+      showToast('❌ ' + err.message, 'error');
+    }
+  }
+  
+  async function removeFromCart(cartKey) {
+    const item = document.querySelector(`[data-cart-key="${cartKey}"]`);
+    if (!item) return;
+    if (!confirm('Retirer cet article ?')) return;
+    
+    item.style.opacity = '0';
+    item.style.transform = 'translateX(-100px)';
+    
+    try {
+      const res = await apiPost('/panier/supprimer/', { cart_key: cartKey });
+      if (!res || res.error) throw new Error(res.error);
+      
+      setTimeout(() => item.remove(), 300);
+      if (res.subtotal) updateCartTotals(res.subtotal);
+      if (res.cart_count !== undefined) updateCartBadge(res.cart_count);
+      
+      if (document.querySelectorAll('.cart-item').length === 1) {
+        setTimeout(() => location.reload(), 400);
+      }
+      showToast('🗑 Article retiré');
+      
+    } catch(err) {
+      item.style.opacity = '1';
+      item.style.transform = '';
+      showToast('❌ ' + err.message, 'error');
+    }
+  }
+  
+  function updateCartTotals(subtotal) {
+    const subtotalEl = document.getElementById('cartSubtotal');
+    const totalEl = document.getElementById('cartTotal');
+    const formatted = Number(subtotal).toLocaleString('fr-FR') + ' F';
+    if (subtotalEl) subtotalEl.textContent = formatted;
+    if (totalEl) totalEl.textContent = formatted;
+  }
+  
+  async function applyPromoCode() {
+    const code = document.getElementById('promoCode').value.trim();
+    const msgDiv = document.getElementById('promoMsg');
+    if (!code) { msgDiv.innerHTML = '📝 Entrez un code promo'; return; }
+    
+    msgDiv.innerHTML = '⏳ Vérification...';
+    msgDiv.className = 'promo-msg';
+    
+    try {
+      const res = await fetch('/api/v1/products/promo/validate/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+        body: JSON.stringify({ code: code, order_amount: {{ subtotal|stringformat:"f" }} })
+      });
+      const data = await res.json();
+      
+      if (data.valid) {
+        msgDiv.innerHTML = '✅ ' + data.discount_percent + '% réduction appliquée !';
+        msgDiv.className = 'promo-msg success';
+        document.getElementById('cartTotal').innerHTML = Number(data.new_total).toLocaleString('fr-FR') + ' F';
+      } else {
+        msgDiv.innerHTML = '❌ ' + (data.detail || 'Code invalide');
+        msgDiv.className = 'promo-msg error';
+      }
+    } catch(err) {
+      msgDiv.innerHTML = '❌ Erreur de validation';
+      msgDiv.className = 'promo-msg error';
+    }
+  }
+  
+  function getCsrfToken() {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta) return meta.content;
+    const cookie = document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='));
+    return cookie ? cookie.split('=')[1] : '';
+  }
+</script>
 
-{% block extra_js %}
-<script src="{% static 'shop/js/cart_page.js' %}"></script>
+<script src="{% static 'shop/js/utils.js' %}"></script>
 {% endblock %}
