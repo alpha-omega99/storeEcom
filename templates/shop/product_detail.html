@@ -244,6 +244,14 @@
         🛒 Ajouter au panier
       </button>
 
+       <!--Favoris -->
+      <button class="pwish {% if product.id|stringformat:'s' in wishlist_ids %}active{% endif %}"
+              data-product-id="{{ product.id }}"
+              onclick="toggleWish('{{ product.id }}', this)"
+              aria-label="Ajouter aux favoris"
+              type="button">♡
+      </button>
+
       <!-- Acheter maintenant -->
       <button class="btn-addcart buy-now"
               onclick="buyNow('{{ product.id }}', '{{ product.name|escapejs }}', {{ product.price }}, '{{ product.emoji|escapejs }}', this)"
@@ -251,13 +259,6 @@
               type="button">
         💸 Acheter maintenant
       </button>
-
-       <!--Favoris -->
-      <button class="pwish {% if product.id|stringformat:'s' in wishlist_ids %}active{% endif %}"
-              data-product-id="{{ product.id }}"
-              onclick="toggleWish('{{ product.id }}', this)"
-              aria-label="Ajouter aux favoris"
-              type="button">♡</button>
     </div>
 
     <!-- Garanties -->

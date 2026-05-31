@@ -10,7 +10,7 @@
          </a>
       {% empty %}
          <a class="cat-btn {% if current_cat == 'pack' %}active{% endif %}"
-            href="{% url 'shop:home' 'packs-section' %}">🎁 Packs cadeaux</a>
+            href="{% url 'shop:home' %}">🎁 Packs cadeaux</a>
          <a class="cat-btn {% if current_cat == 'tapis' %}active{% endif %}"
             href="{% url 'shop:catalog_category' 'pack' %}">🕌 Tapis de prière</a>
          <a class="cat-btn {% if current_cat == 'accessoire' %}active{% endif %}"

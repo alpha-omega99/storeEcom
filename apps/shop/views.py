@@ -437,7 +437,7 @@ def checkout_view(request):
         return redirect('shop:cart')
 
     if request.method == 'POST':
-        logger.info(f"=== CHECKOUT POST RECEIVED ===")
+        logger.info("=== CHECKOUT POST RECEIVED ===")
         logger.info(f"POST data: {request.POST}")
         result = _process_checkout(request, items, subtotal)
         logger.info(f"Redirect result: {result}")
@@ -455,10 +455,10 @@ def checkout_view(request):
         'communes': communes,
     })
 
-
 def _process_checkout(request, items, subtotal):
     import re, bleach
     from django.db import transaction
+    from django.db import models  # ← AJOUTER CET IMPORT
     from apps.orders.models import Order, OrderItem
     from apps.products.models import PromoCode, Product
 
@@ -474,14 +474,31 @@ def _process_checkout(request, items, subtotal):
     instructions = clean(request.POST.get('delivery_instructions'), 300)
     payment_meth = request.POST.get('payment_method', 'cash')
     promo_code = request.POST.get('promo_code', '').upper().strip()[:30]
+    
+    # ========== AJOUTER CES LIGNES ==========
+    embroidery_name = clean(request.POST.get('embroidery_name', ''), 20)
+    personal_message = clean(request.POST.get('personal_message', ''), 200)
+    # ========================================
 
     # Validations
     if len(first_name) < 2:
         messages.error(request, 'Prénom invalide.')
         return redirect('shop:checkout')
-    if not re.match(r'^\+?\d{8,15}$', phone):
-        messages.error(request, 'Numéro de téléphone invalide.')
+    
+    # Validation téléphone CORRIGÉE
+    phone_cleaned = re.sub(r'[\s\-\.\(\)\+]', '', phone)
+    phone_valid = False
+    if phone_cleaned.isdigit() and len(phone_cleaned) == 10 and phone_cleaned.startswith('0'):
+        phone_valid = True
+    elif phone_cleaned.isdigit() and 8 <= len(phone_cleaned) <= 15:
+        phone_valid = True
+    elif phone_cleaned.startswith('225') and len(phone_cleaned) >= 11:
+        phone_valid = True
+    
+    if not phone_valid:
+        messages.error(request, 'Numéro de téléphone invalide (ex: 0586838902)')
         return redirect('shop:checkout')
+    
     if payment_meth not in ('orange_money', 'wave', 'cash'):
         payment_meth = 'cash'
 
@@ -495,7 +512,8 @@ def _process_checkout(request, items, subtotal):
             if promo.is_valid(float(subtotal)):
                 discount = round(subtotal * promo.discount_percent / 100)
                 promo_used = promo_code
-                PromoCode.objects.filter(pk=promo.pk).update(current_models.F('current_uses') + 1)
+                # CORRECTION : utiliser 'models' pas 'current_models'
+                PromoCode.objects.filter(pk=promo.pk).update(current_uses=models.F('current_uses') + 1)
         except PromoCode.DoesNotExist:
             pass
 
@@ -512,7 +530,7 @@ def _process_checkout(request, items, subtotal):
                 messages.error(request, f'{fresh_product.name} est en rupture de stock.')
                 return redirect('shop:checkout')
 
-        # Créer la commande
+        # Créer la commande AVEC les variables définies
         order = Order.objects.create(
             user=request.user if request.user.is_authenticated else None,
             customer_first_name=first_name,
@@ -527,6 +545,8 @@ def _process_checkout(request, items, subtotal):
             discount_amount=discount,
             total_amount=total,
             promo_code=promo_used,
+            embroidery_name=embroidery_name,      # ← MAINTENANT DÉFINIE
+            personal_message=personal_message,    # ← MAINTENANT DÉFINIE
         )
         
         # Créer les items
@@ -553,7 +573,7 @@ def _process_checkout(request, items, subtotal):
     # Vider le panier
     save_cart(request, {})
 
-    # Notifications (optionnelles)
+    # Notifications
     try:
         from apps.accounts.tasks import send_order_confirmation_email, notify_admin_new_order_whatsapp
         send_order_confirmation_email.delay(str(order.id))
@@ -562,10 +582,7 @@ def _process_checkout(request, items, subtotal):
         logger.error(f'Notifications commande {order.reference}: {e}')
 
     logger.info(f'Commande créée: {order.reference} — {order.total_amount} F')
-    
-    # ✅ CRUCIAL : rediriger vers la page de succès
     return redirect('shop:success', reference=order.reference)
-
 # ------------------------------------------------------------------ #
 #  SUCCESS
 # ------------------------------------------------------------------ #
