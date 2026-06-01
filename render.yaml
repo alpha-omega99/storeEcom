@@ -5,18 +5,14 @@ services:
     repo: https://github.com/alpha-omega99/storeEcom
     plan: free
     region: frankfurt
+    
+    # Build : uniquement l'installation + collectstatic (pas besoin de DB)
     buildCommand: |
-      apt-get update && apt-get install -y \
-        pkg-config \
-        libmysqlclient-dev \
-        default-libmysqlclient-dev \
-        build-essential
-      
       pip install --upgrade pip
       pip install -r requirements.txt
-      
       python manage.py collectstatic --noinput --settings=config.settings.production
     
+    # Start : migrate (DB disponible) + lancement du serveur
     startCommand: |
       python manage.py migrate --noinput --settings=config.settings.production
       gunicorn config.wsgi:application
