@@ -20,8 +20,8 @@ environ.Env.read_env(BASE_DIR / '.env')
 # ============================================================
 # SÉCURITÉ — Clé secrète (jamais en dur !)
 # ============================================================
-SECRET_KEY = env('SECRET_KEY')
-DEBUG = env('DEBUG')
+SECRET_KEY = env('SECRET_KEY', default='dev-secret-key-change-me-in-production')
+DEBUG = env('DEBUG', default=False)
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
 
 # ============================================================
@@ -94,7 +94,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # ============================================================
-# BASE DE DONNÉES — Support DATABASE_URL (Render/Heroku) ou variables séparées (local)
+# BASE DE DONNÉES — Support DATABASE_URL (Render) ou SQLite (local)
 # ============================================================
 DATABASE_URL = env('DATABASE_URL', default=None)
 
@@ -103,7 +103,7 @@ if DATABASE_URL:
         'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
     }
 else:
-    # Fallback pour collectstatic et autres commandes sans DB
+    # Fallback SQLite pour le développement local et collectstatic
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -111,9 +111,7 @@ else:
         }
     }
 
-# Sécurité : transactions atomiques par requête HTTP
-if DATABASES and 'default' in DATABASES:
-    DATABASES['default']['ATOMIC_REQUESTS'] = True
+DATABASES['default']['ATOMIC_REQUESTS'] = True
 # ============================================================
 # AUTHENTIFICATION PERSONNALISÉE
 # ============================================================
