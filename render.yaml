@@ -1,22 +1,63 @@
-
-# ============================================================
-# ChicShop — Configuration Render.com
-# ============================================================
 services:
   - type: web
-    name: chicshop
+    name: chicshop-backend
     runtime: python
+    repo: https://github.com/alpha-omega99/storeEcom
+    plan: free
+    region: frankfurt
     buildCommand: |
+      # Installation des dépendances système pour mysqlclient (même si vous utilisez PostgreSQL en prod)
+      # Ces bibliothèques sont nécessaires pour que pip puisse compiler mysqlclient
+      apt-get update && apt-get install -y \
+        pkg-config \
+        libmysqlclient-dev \
+        default-libmysqlclient-dev \
+        build-essential
+      
+      # Installation des dépendances Python
+      pip install --upgrade pip
       pip install -r requirements.txt
-      python manage.py collectstatic --noinput
-      python manage.py migrate --noinput
-    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+      
+      # Commandes Django avec le bon fichier de settings (production)
+      python manage.py collectstatic --noinput --settings=config.settings.production
+      python manage.py migrate --noinput --settings=config.settings.production
+    
+    startCommand: gunicorn config.wsgi:application --settings=config.settings.production
+    
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.3
       - key: DJANGO_SETTINGS_MODULE
         value: config.settings.production
       - key: SECRET_KEY
         generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: chicshop-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: chicshop-redis
+          type: redis
+          property: connectionString
       - key: DEBUG
-        value: "False"
-      - key: PYTHON_VERSION
-        value: "3.11.0"
+        value: false
+      # Vos autres variables d'environnement
+      - key: WHATSAPP_API_TOKEN
+        sync: false  # À définir manuellement dans le dashboard
+      - key: WHATSAPP_ADMIN_NUMBER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+
+databases:
+  - name: chicshop-db
+    plan: free
+    region: frankfurt
+
+services:
+  - type: redis
+    name: chicshop-redis
+    plan: free
+    region: frankfurt
+    maxmemoryPolicy: noeviction
