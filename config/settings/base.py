@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 from datetime import timedelta
 import environ
+import dj_database_url
 
 # ============================================================
 # CHEMINS
@@ -93,25 +94,31 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # ============================================================
+# ============================================================
+# BASE DE DONNÉES — Support DATABASE_URL (Render/Heroku) ou variables séparées (local)
+# ============================================================
+DATABASE_URL = env('DATABASE_URL', default=None)
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': env('DB_NAME'),
-        'USER': env('DB_USER'),
-        'PASSWORD': env('DB_PASSWORD'),
-        'HOST': env('DB_HOST', default='127.0.0.1'),
-        'PORT': env('DB_PORT', default='3306'),
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            'charset': 'utf8mb4',
-        },
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
     }
-}
+else:
+    # Mode local/développement — variables séparées
+    DATABASES = {
+        'default': {
+            'ENGINE': env('DB_ENGINE', default='django.db.backends.sqlite3'),
+            'NAME': env('DB_NAME', default=str(BASE_DIR / 'db.sqlite3')),
+            'USER': env('DB_USER', default=''),
+            'PASSWORD': env('DB_PASSWORD', default=''),
+            'HOST': env('DB_HOST', default=''),
+            'PORT': env('DB_PORT', default=''),
+        }
+    }
 
-# Anti-injection : utiliser toujours les ORM Django, jamais raw SQL non paramétré
-DATABASES['default']['ATOMIC_REQUESTS'] = True  # Transaction par requête HTTP
-
+# Sécurité : transactions atomiques par requête HTTP
+if DATABASES and 'default' in DATABASES:
+    DATABASES['default']['ATOMIC_REQUESTS'] = True
 # ============================================================
 # AUTHENTIFICATION PERSONNALISÉE
 # ============================================================

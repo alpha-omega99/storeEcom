@@ -18,7 +18,7 @@ argon2-cffi==25.1.0
 cryptography==48.0.0
 
 # Base de données
-mysqlclient==2.2.8
+
 psycopg2-binary==2.9.12
 dj-database-url==2.3.0
 
