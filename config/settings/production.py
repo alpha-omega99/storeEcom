@@ -3,6 +3,8 @@ ChicShop — Settings de PRODUCTION
 Sécurité maximale activée
 """
 from .base import *
+import os
+import dj_database_url
 
 DEBUG = False
 
@@ -47,7 +49,7 @@ CSP_SCRIPT_SRC = ("'self'",)
 CSP_CONNECT_SRC = ("'self'",)
 
 # CSRF — Origines de confiance explicites
-CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=['https://*.onrender.com'])
 
 # ============================================================
 # REST FRAMEWORK — Activer le Browsable API uniquement si debug
@@ -72,7 +74,12 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Autoriser Render
-ALLOWED_HOSTS = ['*']  # Ou spécifiez votre URL Render plus tard
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[
+    'localhost',
+    '127.0.1',
+    'onrender.com',
+    '.chicshop+.ci',
+    ])  # Ou spécifiez votre URL Render plus tard
 
 
 MIDDLEWARE = [
@@ -88,3 +95,15 @@ MIDDLEWARE = [
     'apps.accounts.middleware.SecurityHeadersMiddleware', # Headers custom
     'apps.accounts.middleware.RequestLoggingMiddleware',  # Audit log
 ]
+
+DATABASES = os.environ.get('DATABASE_URL')
+if DATABASES_URL:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASES_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+    DATABASES['default']['ATOMIC_REQUESTS'] = True
+
