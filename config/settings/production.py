@@ -78,7 +78,7 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[
     'localhost',
     '127.0.1',
     'onrender.com',
-    '.chicshop+.ci',
+    '.chicshop.ci',
     ])  # Ou spécifiez votre URL Render plus tard
 
 
