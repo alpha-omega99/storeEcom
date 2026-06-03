@@ -51,6 +51,9 @@ services:
     plan: free
     region: frankfurt
     maxmemoryPolicy: noeviction
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: Autoriser l'accès pour l'application Django
 
 databases:
   - name: ecom_db
