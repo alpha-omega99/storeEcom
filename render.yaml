@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: chicshop-backend
+    name: chicshop
     runtime: python
     repo: https://github.com/alpha-omega99/storeEcom
     plan: free
@@ -26,7 +26,7 @@ services:
         generateValue: true
       - key: DATABASE_URL
         fromDatabase:
-          name: chicshop-db
+          name: ecom_db
           property: connectionString
       - key: REDIS_URL
         fromService:
@@ -36,9 +36,9 @@ services:
       - key: DEBUG
         value: false
       - key: ALLOWED_HOSTS
-        value: "chicshop-backend.onrender.com,localhost,127.0.0.1"
+        value: "chicshop.onrender.com,localhost,127.0.0.1"
       - key: CORS_ALLOWED_ORIGINS
-        value: "https://chicshop-frontend.onrender.com,http://localhost:3000"
+        value: "https://chicshop.onrender.com,http://localhost:3000"
       - key: WHATSAPP_API_TOKEN
         sync: false
       - key: WHATSAPP_ADMIN_NUMBER
@@ -53,6 +53,6 @@ services:
     maxmemoryPolicy: noeviction
 
 databases:
-  - name: chicshop-db
+  - name: ecom_db
     plan: free
     region: frankfurt
