@@ -1,7 +1,69 @@
+{% load static %}
+
 <!-- WHATSAPP FLOAT -->
 <a class="wa-float"
-   href="https://wa.me/{{ whatsapp_number|default:'2250103976779' }}?text=Bonjour%20Aminata%2C%20je%20veux%20des%20informations%20sur%20vos%20tapis%20🌸"
-   target="_blank" rel="noopener noreferrer" aria-label="Contacter Aminata sur WhatsApp">
+   href="https://wa.me/{{ whatsapp_number|default:'2250103976779' }}?text=Bonjour%20Aminata%2C%20je%20souhaite%20personnaliser%20un%20tapis%20🌸"
+   target="_blank" rel="noopener noreferrer" 
+   aria-label="Contacter Aminata sur WhatsApp">
   <span class="wa-dot"></span>
-  <span>Aminata vous conseille</span>
+  <span>💬 Aminata vous conseille</span>
 </a>
+
+<style>
+  .wa-float {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #25D366;
+    color: white;
+    padding: 12px 24px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    z-index: 100;
+    transition: all 0.3s ease;
+    text-decoration: none;
+  }
+  
+  .wa-float:hover {
+    transform: scale(1.05);
+    background: #128C7E;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.2);
+  }
+  
+  .wa-dot {
+    width: 10px;
+    height: 10px;
+    background: #4ade80;
+    border-radius: 50%;
+    animation: pulse-wa 2s infinite;
+  }
+  
+  @keyframes pulse-wa {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.2); }
+  }
+  
+  @media (max-width: 768px) {
+    .wa-float {
+      bottom: 16px;
+      right: 16px;
+      padding: 10px 18px;
+      font-size: 0.8rem;
+    }
+    .wa-float span:last-child {
+      display: none;
+    }
+    .wa-float {
+      width: 48px;
+      height: 48px;
+      padding: 0;
+      justify-content: center;
+      border-radius: var(--radius-full);
+    }
+  }
+</style>

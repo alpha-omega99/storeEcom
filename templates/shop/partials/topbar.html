@@ -1,7 +1,46 @@
+<div class="flash-strip" data-testid="flash-strip">
+  <span class="flash-icon">&#9733; Vente flash</span>
+  <span class="flash-sep">|</span>
+  <span>Jusqu'a -40% &middot; Code <strong class="flash-code">CHICSHOP15</strong></span>
+  <span class="flash-sep">|</span>
+  <span class="flash-timer" id="flashTimer">05:47:23</span>
+</div>
+
+
+{% comment %} {% load static %}
+
 <!-- TOP BAR -->
 <div class="topbar">
-  <span>🌸</span>
-  <span class="topbar-ticker">
-    Emballage cadeau offert · Code <strong>CHICSHOP15</strong> pour -15% · Livraison rapide à Abidjan
-  </span>
+  <div class="topbar-inner" style="max-width: 1280px; margin: 0 auto; display: flex; justify-content: center; gap: 24px; flex-wrap: wrap;">
+    <span>🌸 Livraison GRATUITE à Abidjan</span>
+    <span>✨ Code <strong style="color: var(--primary);">CHICSHOP15</strong> pour -15%</span>
+    <span>🎁 Emballage cadeau OFFERT</span>
+    <span>⭐ 4.9/5 — 2000+ avis vérifiés</span>
+  </div>
 </div>
+
+<!-- Marquee animée pour mobile -->
+<div class="marquee" style="display: none; background: var(--secondary); color: white; overflow: hidden; white-space: nowrap; padding: 8px 0;">
+  <div class="marquee-track" style="display: inline-block; animation: marquee 20s linear infinite;">
+    <span>🌸 Livraison GRATUITE à Abidjan &nbsp;&nbsp;✦&nbsp;&nbsp;</span>
+    <span>✨ Code CHICSHOP15 pour -15% &nbsp;&nbsp;✦&nbsp;&nbsp;</span>
+    <span>🎁 Emballage cadeau OFFERT &nbsp;&nbsp;✦&nbsp;&nbsp;</span>
+    <span>⭐ 4.9/5 — 2000+ avis &nbsp;&nbsp;✦&nbsp;&nbsp;</span>
+  </div>
+</div>
+
+<style>
+  @media (max-width: 768px) {
+    .topbar .topbar-inner {
+      display: none;
+    }
+    .marquee {
+      display: block !important;
+    }
+  }
+  
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+</style> {% endcomment %}

@@ -4,19 +4,60 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}ChicShop — Tapis de Prière Personnalisé | Abidjan{% endblock %}</title>
-  <meta name="description" content="{% block meta_description %}Tapis de prière brodés à la main, personnalisés avec votre prénom. Packs cadeaux pour l'Aïd, le mariage et le Hajj. Livraison rapide à Abidjan.{% endblock %}">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Jost:wght@300;400;500;600&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'shop/css/base.css' %}">
-  <link rel="stylesheet" href="{% static 'shop/css/_atelier-tokens.css' %}">
-  <link rel="stylesheet" href="{% static 'shop/css/components.css' %}">
+  <title>{% block title %}ChicShop - Tapis de Priere Personnalise | Abidjan{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}Tapis de priere brodes a la main, personnalises avec votre prenom. Packs cadeaux pour l'Aid, le mariage et le Hajj. Livraison rapide a Abidjan.{% endblock %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'shop/css/chicshop.css' %}">
   {% block extra_css %}{% endblock %}
   {% csrf_token %}
 </head>
 <body>
-
-  <!-- TOAST GLOBAL -->
   <div id="toast"></div>
+  {% include 'shop/partials/topbar.html' %}
+  {% include 'shop/partials/header.html' %}
+  {% include 'shop/partials/cat_nav.html' %}
+  {% include 'shop/partials/trustbar.html' %}
+
+  <main class="main">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include 'shop/partials/footer.html' %}
+  {% include 'shop/partials/whatsapp_float.html' %}
+  {% include 'shop/partials/cart_drawer.html' %}
+
+  <script src="{% static 'shop/js/utils.js' %}"></script>
+  <script src="{% static 'shop/js/cart.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
+
+
+
+
+{% comment %} {% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}ChicShop — Tapis de Prière Personnalisé | Abidjan{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}Tapis de prière brodés à la main, personnalisés avec votre prénom. Packs cadeaux pour l'Aïd, le mariage et le Hajj. Livraison rapide à Abidjan.{% endblock %}">
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Jost:wght@300;400;500;600;700&family=Dancing+Script:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Styles -->
+  <link rel="stylesheet" href="{% static 'shop/css/main.css' %}">
+  {% block extra_css %}{% endblock %}
+  
+  {% csrf_token %}
+</head>
+<body>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="toast"></div>
 
   <!-- TOP BAR -->
   {% include 'shop/partials/topbar.html' %}
@@ -24,13 +65,13 @@
   <!-- HEADER -->
   {% include 'shop/partials/header.html' %}
 
-  <!-- CAT NAV -->
+  <!-- CATEGORY NAV -->
   {% include 'shop/partials/cat_nav.html' %}
 
   <!-- TRUST BAR -->
   {% include 'shop/partials/trustbar.html' %}
 
-  <!-- MAIN -->
+  <!-- MAIN CONTENT -->
   <main class="main">
     {% block content %}{% endblock %}
   </main>
@@ -41,14 +82,14 @@
   <!-- WHATSAPP FLOAT -->
   {% include 'shop/partials/whatsapp_float.html' %}
 
-  <!-- LIVE ACTIVITY POPUP -->
-  <div id="livePopup" class="live-popup" style="display:none"></div>
+  <!-- LIVE ACTIVITY -->
+  {% include 'shop/partials/live.html' %}
 
-  <!-- JS GLOBAL -->
-  <script src="{% static 'shop/js/utils.js' %}"></script>
-  <script src="{% static 'shop/js/cart.js' %}"></script>
-  <script src="{% static 'shop/js/live.js' %}"></script>
-  {% block extra_js %}{% endblock %}
+  <!-- CART DRAWER -->
   {% include 'shop/partials/cart_drawer.html' %}
+
+  <!-- SCRIPTS -->
+  <script src="{% static 'shop/js/main.js' %}"></script>
+  {% block extra_js %}{% endblock %}
 </body>
-</html>
+</html> {% endcomment %}

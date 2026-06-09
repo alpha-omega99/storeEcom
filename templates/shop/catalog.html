@@ -1,4 +1,58 @@
 {% extends 'shop/base.html' %}
+{% load humanize %}
+
+{% block title %}{% if current_category %}{{ current_category.name }}{% else %}Boutique{% endif %} - ChicShop{% endblock %}
+
+{% block content %}
+<div class="section page-header">
+  <div class="breadcrumbs">
+    <a href="{% url 'shop:home' %}">Accueil</a> &rsaquo;
+    <a href="{% url 'shop:catalog' %}">Boutique</a>
+    {% if current_category %}&rsaquo; <span>{{ current_category.name }}</span>{% endif %}
+  </div>
+  <div class="page-head-row">
+    <div>
+      <h1 class="page-title">
+        {% if search_query %}Resultats pour <em>"{{ search_query }}"</em>
+        {% elif current_category %}{{ current_category.name }}
+        {% else %}Notre <em>boutique</em>{% endif %}
+      </h1>
+      <p class="page-subtitle">{{ products|length }} produit{{ products|length|pluralize }}</p>
+    </div>
+    <select class="sort-select" data-testid="catalog-sort" onchange="window.location.search='?sort='+this.value{% if current_category %}+'&category={{ current_category.slug }}'{% endif %}">
+      <option value="featured" {% if sort == 'featured' %}selected{% endif %}>Mis en avant</option>
+      <option value="price-asc" {% if sort == 'price-asc' %}selected{% endif %}>Prix croissant</option>
+      <option value="price-desc" {% if sort == 'price-desc' %}selected{% endif %}>Prix decroissant</option>
+      <option value="rating" {% if sort == 'rating' %}selected{% endif %}>Mieux notes</option>
+    </select>
+  </div>
+
+  <div class="filter-pills">
+    <a href="{% url 'shop:catalog' %}" class="filter-pill {% if not current_category %}active{% endif %}">Tout</a>
+    {% for cat in categories %}
+    <a href="{% url 'shop:catalog_category' cat.slug %}" class="filter-pill {% if current_category.slug == cat.slug %}active{% endif %}" data-testid="filter-{{ cat.slug }}">{{ cat.name }}</a>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="section">
+  <div class="products-grid">
+    {% for product in products %}
+    {% include 'shop/partials/product_card.html' with product=product index=forloop.counter0 %}
+    {% empty %}
+    <div class="empty-state">
+      <div class="empty-icon">&#128722;</div>
+      <p>Aucun produit trouve.</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+
+
+
+{% comment %} {% extends 'shop/base.html' %}
 {% load static %}
 
 {% block title %}
@@ -145,4 +199,4 @@
 
 {% block extra_js %}
 <script src="{% static 'shop/js/catalog.js' %}"></script>
-{% endblock %}
+{% endblock %} {% endcomment %}

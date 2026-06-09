@@ -1,16 +1,45 @@
-{% load static %}
+
+{% load humanize %}
+<article class="product-card" data-testid="product-card-{{ product.slug }}" style="animation-delay: {{ index|default:0 }}00ms">
+  <a href="{% url 'shop:product_detail' product.slug %}" class="product-img-wrap">
+    <img src="{{ product.image }}" alt="{{ product.name }}" loading="lazy">
+    {% if product.badge %}
+    <span class="product-badge">{{ product.badge }}</span>
+    {% endif %}
+    {% if product.original_price %}
+    <span class="product-discount">-{{ product.computed_discount }}%</span>
+    {% endif %}
+  </a>
+  <div class="product-info">
+    <div class="product-rating">
+      <span class="star">&#9733;</span>
+      <span class="rating-val">{{ product.rating }}</span>
+      <span class="rating-count">- {{ product.review_count }} avis</span>
+    </div>
+    <h3 class="product-name">{{ product.name }}</h3>
+    {% if product.tagline %}<p class="product-tagline">{{ product.tagline }}</p>{% endif %}
+    <div class="product-price-row">
+      <span class="product-price">{{ product.price|intcomma }} F CFA</span>
+      {% if product.original_price %}<s class="product-old">{{ product.original_price|intcomma }} F CFA</s>{% endif %}
+    </div>
+    <button class="product-quick-add" data-testid="quick-add-{{ product.slug }}" onclick="event.preventDefault(); addToCart('{{ product.slug }}')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+    </button>
+  </div>
+</article>
+
+{% comment %} {% load static %}
 
 <article class="pcard" data-product-id="{{ product.id }}">
-
-  <!-- Image -->
-  <a href="{% url 'shop:product_detail' product.slug %}" class="pcard-link"
-     aria-label="{{ product.name }}">
+  
+  <!-- Image Link -->
+  <a href="{% url 'shop:product_detail' product.slug %}" class="pcard-link" aria-label="{{ product.name }}">
     {% if product.image %}
-      <img class="pcard-img" src="{{ product.image.url }}"
-           alt="{{ product.name }}" loading="lazy">
+      <img class="pcard-img" src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy">
     {% else %}
       <div class="pcard-img-placeholder" aria-hidden="true">
-        {{ product.emoji }} {{ product.name|truncatewords:1 }}
+        {{ product.emoji|default:"🕌" }}<br>
+        <small>{{ product.name|truncatewords:2 }}</small>
       </div>
     {% endif %}
   </a>
@@ -21,36 +50,51 @@
     <span class="pbadge-{{ product.badge|lower }}">{{ product.badge }}</span>
   </div>
   {% endif %}
+  
+  <!-- Discount Badge -->
+  {% if product.original_price %}
+  <div class="discount-badge" style="position: absolute; top: 12px; right: 12px; background: var(--error); color: white; padding: 4px 10px; border-radius: var(--radius-full); font-size: 0.7rem; font-weight: bold; z-index: 2;">
+    -{{ product.discount_percent|default:"0" }}%
+  </div>
+  {% endif %}
 
-  <!-- Bouton favoris — CORRECTION : data-product-id + onclick propre -->
+  <!-- Wishlist Button -->
   <button class="pwish {% if product.id|stringformat:'s' in wishlist_ids %}active{% endif %}"
           data-product-id="{{ product.id }}"
-          onclick="toggleWish('{{ product.id }}', this)"
+          onclick="toggleWishlist('{{ product.id }}', this)"
           aria-label="Ajouter aux favoris"
-          title="Favoris">♡</button>
+          title="Favoris">
+    ♡
+  </button>
 
-  <!-- Infos produit -->
+  <!-- Product Info -->
   <div class="pcard-body">
     <div class="pcard-cat">{{ product.category.name }}</div>
 
-    <a href="{% url 'shop:product_detail' product.slug %}" class="pcard-name-link">
+    <a href="{% url 'shop:product_detail' product.slug %}" class="pcard-name-link" style="text-decoration: none;">
       <div class="pcard-name">{{ product.name }}</div>
     </a>
 
-    <div class="pcard-stars" aria-label="{{ product.average_rating }} étoiles sur 5">
-      {% for i in "12345" %}
-        {% if forloop.counter <= product.average_rating %}★{% else %}☆{% endif %}
+    <div class="pcard-stars" aria-label="{{ product.average_rating|default:0 }} étoiles sur 5">
+      {% for i in "12345"|make_list %}
+        {% if forloop.counter <= product.average_rating|default:0 %}★{% else %}☆{% endif %}
       {% endfor %}
-      <span>{{ product.review_count }} avis</span>
+      <span>({{ product.review_count|default:0 }})</span>
     </div>
 
     <div class="pcard-price">
-      <strong>{{ product.price|floatformat:0 }} F CFA</strong>
+      <strong>{{ product.price|floatformat:0 }} F</strong>
       {% if product.original_price %}
         <s>{{ product.original_price|floatformat:0 }} F</s>
-        <span class="disc">-{{ product.discount_percent }}%</span>
       {% endif %}
     </div>
+    
+    <!-- Quick Add Button -->
+    <button class="pcard-btn"
+            onclick="event.stopPropagation(); addToCart('{{ product.id }}', '{{ product.name|escapejs }}', {{ product.price }}, '{{ product.emoji|escapejs }}')"
+            aria-label="Ajouter {{ product.name }} au panier"
+            type="button">
+      🛒 Ajouter
+    </button>
   </div>
-
-</article>
+</article> {% endcomment %}

@@ -1,0 +1,342 @@
+{% extends 'shop/base.html' %}
+{% load humanize %}
+
+{% block title %}Personnaliser votre tapis - ChicShop{% endblock %}
+
+{% block content %}
+<div class="section personalize-page">
+  <div class="personalize-head">
+    <div class="eyebrow"><span class="sparkle">&#10024;</span> Personnalisation</div>
+    <h1 class="page-title">Creez votre <em>tapis unique</em></h1>
+    <p class="page-subtitle">Choisissez la couleur, brodez le prenom - l'artisanat fait le reste. Livre sous 5 a 7 jours.</p>
+  </div>
+
+  <div class="personalize-layout">
+    <div class="personalize-preview">
+      <div class="rug-preview-box" id="previewBox">
+        <div class="rug-shape-lg" id="rugShape">
+          <div class="rug-name-lg" id="rugPreviewName">Fatima</div>
+          <div class="rug-sub-lg">Brode main - Abidjan</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="personalize-controls">
+      <div class="control-group">
+        <label class="eyebrow">Prenom a broder</label>
+        <input type="text" id="persoName" data-testid="personalize-name-input" placeholder="Tapez le prenom..." maxlength="18" value="Fatima"
+               oninput="document.getElementById('rugPreviewName').textContent = this.value || 'Votre prenom'">
+        <p class="input-hint">18 caracteres max - Aminata vous proposera l'ecriture arabe sur WhatsApp.</p>
+      </div>
+
+      <div class="control-group">
+        <label class="eyebrow">Couleur du tapis</label>
+        <div class="color-options">
+          <button class="color-btn active" data-testid="color-rose" data-color="#E5B3B3" data-name="Rose poudre" onclick="setColor(this)">
+            <span class="color-swatch" style="background:#E5B3B3"></span> Rose poudre
+          </button>
+          <button class="color-btn" data-testid="color-emerald" data-color="#1A3C2F" data-name="Emeraude" onclick="setColor(this)">
+            <span class="color-swatch" style="background:#1A3C2F"></span> Emeraude
+          </button>
+          <button class="color-btn" data-testid="color-bone" data-color="#F2EBE5" data-name="Ivoire" onclick="setColor(this)">
+            <span class="color-swatch" style="background:#F2EBE5"></span> Ivoire
+          </button>
+          <button class="color-btn" data-testid="color-gold" data-color="#D4AF37" data-name="Or royal" onclick="setColor(this)">
+            <span class="color-swatch" style="background:#D4AF37"></span> Or royal
+          </button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="eyebrow">Modele de tapis</label>
+        <div class="tapis-options">
+          {% for t in tapis %}
+          <button class="tapis-btn {% if forloop.first %}active{% endif %}" data-testid="tapis-option-{{ t.slug }}" data-slug="{{ t.slug }}" data-price="{{ t.price }}" onclick="setTapis(this)">
+            <img src="{{ t.image }}" alt="{{ t.name }}">
+            <div class="tapis-info">
+              <div class="tapis-name">{{ t.name }}</div>
+              <div class="tapis-price">{{ t.price|intcomma }} F CFA</div>
+            </div>
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="personalize-actions">
+        <button class="btn-emerald flex-1" data-testid="personalize-add-cart" onclick="addPersonalizedToCart()">
+          Ajouter au panier - <span id="persoPrice">{{ tapis.0.price|intcomma }} F CFA</span>
+        </button>
+        <a href="{% url 'shop:catalog_category' 'tapis' %}" class="btn-ghost">Voir tous</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let selectedTapisSlug = '{{ tapis.0.slug }}';
+function setColor(btn) {
+  document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const color = btn.dataset.color;
+  document.getElementById('rugShape').style.background = 'linear-gradient(180deg, ' + color + ' 0%, ' + color + 'cc 80%)';
+}
+function setTapis(btn) {
+  document.querySelectorAll('.tapis-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedTapisSlug = btn.dataset.slug;
+  document.getElementById('persoPrice').textContent = parseInt(btn.dataset.price).toLocaleString('fr-FR').replace(/,/g, ' ') + ' F CFA';
+}
+function addPersonalizedToCart() {
+  const name = document.getElementById('persoName').value.trim();
+  if (!name) { showToast('Saisissez un prenom a broder'); return; }
+  addToCart(selectedTapisSlug, 1, name);
+}
+</script>
+{% endblock %}
+
+
+
+{% comment %} 
+
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}Personnalisez votre tapis — ChicShop{% endblock %}
+
+{% block extra_css %}
+<style>
+  .personalize-section {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  
+  .personalize-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    margin-top: 32px;
+  }
+  
+  .preview-card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    text-align: center;
+    position: sticky;
+    top: 100px;
+  }
+  
+  .preview-rug {
+    background: linear-gradient(135deg, #E5B3B3, #D89595);
+    border-radius: 50% 50% 30% 30% / 60% 60% 20% 20%;
+    padding: 60px 20px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .preview-name {
+    font-family: 'Dancing Script', cursive;
+    font-size: 2rem;
+    color: var(--primary);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .options-card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+  }
+  
+  .color-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .color-option.selected {
+    border-color: var(--primary);
+    background: var(--primary-light);
+  }
+  
+  .product-option {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .product-option.selected {
+    border-color: var(--primary);
+    background: var(--primary-light);
+  }
+  
+  @media (max-width: 768px) {
+    .personalize-layout {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    
+    .preview-card {
+      position: static;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="personalize-section">
+  <nav class="breadcrumb">
+    <a href="{% url 'shop:home' %}">Accueil</a> ›
+    <span>Personnalisation</span>
+  </nav>
+  
+  <h1 class="page-title">Créez <span>votre tapis unique</span></h1>
+  
+  <div class="personalize-layout">
+    
+    <!-- Preview -->
+    <div class="preview-card">
+      <div class="preview-rug" id="previewRug">
+        <div class="preview-name" id="previewName">Votre prénom</div>
+        <div style="font-size: 0.7rem; margin-top: 16px; opacity: 0.7;">Brodé main · Abidjan</div>
+      </div>
+      <button class="btn-primary" id="addToCartPreview" style="width: 100%;">
+        🛒 Ajouter au panier
+      </button>
+    </div>
+    
+    <!-- Options -->
+    <div class="options-card">
+      <div style="margin-bottom: 24px;">
+        <label style="font-weight: 600; display: block; margin-bottom: 8px;">✏️ Prénom à broder</label>
+        <input type="text" id="embroideryName" placeholder="Tapez votre prénom..." 
+               style="width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-md);">
+      </div>
+      
+      <div style="margin-bottom: 24px;">
+        <label style="font-weight: 600; display: block; margin-bottom: 8px;">🎨 Couleur du tapis</label>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          {% for color in colors %}
+          <div class="color-option {% if forloop.first %}selected{% endif %}" 
+               data-color="{{ color.hex }}"
+               data-color-id="{{ color.id }}"
+               onclick="selectColor(this, '{{ color.hex }}')">
+            <span style="width: 20px; height: 20px; border-radius: 50%; background: {{ color.hex }}; display: inline-block;"></span>
+            <span>{{ color.name }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      
+      <div style="margin-bottom: 24px;">
+        <label style="font-weight: 600; display: block; margin-bottom: 8px;">🕌 Modèle de tapis</label>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          {% for product in tapis_products %}
+          <div class="product-option {% if forloop.first %}selected{% endif %}" 
+               data-product-id="{{ product.id }}"
+               data-product-name="{{ product.name }}"
+               data-product-price="{{ product.price }}"
+               onclick="selectProduct(this)">
+            <div style="width: 60px; height: 60px; background: var(--background); border-radius: var(--radius-md); overflow: hidden;">
+              {% if product.image %}
+                <img src="{{ product.image.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+              {% else %}
+                <div style="display: flex; align-items: center; justify-content: center; height: 100%;">🕌</div>
+              {% endif %}
+            </div>
+            <div style="flex: 1;">
+              <div style="font-weight: 600;">{{ product.name }}</div>
+              <div style="color: var(--primary);">{{ product.price|floatformat:0 }} F</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    
+  </div>
+</div>
+
+<script>
+  let selectedColor = '#E5B3B3';
+  let selectedProduct = null;
+  let selectedProductId = null;
+  
+  function selectColor(element, colorHex) {
+    document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+    element.classList.add('selected');
+    selectedColor = colorHex;
+    document.getElementById('previewRug').style.background = `linear-gradient(135deg, ${colorHex}, ${colorHex}cc)`;
+  }
+  
+  function selectProduct(element) {
+    document.querySelectorAll('.product-option').forEach(opt => opt.classList.remove('selected'));
+    element.classList.add('selected');
+    selectedProduct = {
+      id: element.dataset.productId,
+      name: element.dataset.productName,
+      price: parseInt(element.dataset.productPrice)
+    };
+    selectedProductId = selectedProduct.id;
+  }
+  
+  document.getElementById('embroideryName').addEventListener('input', function() {
+    const name = this.value.trim() || 'Votre prénom';
+    document.getElementById('previewName').textContent = name;
+  });
+  
+  document.getElementById('addToCartPreview').addEventListener('click', async function() {
+    const embroideryName = document.getElementById('embroideryName').value.trim();
+    
+    if (!embroideryName) {
+      showToast('⚠️ Veuillez entrer un prénom à broder', 'error');
+      return;
+    }
+    
+    if (!selectedProductId) {
+      showToast('⚠️ Veuillez sélectionner un modèle', 'error');
+      return;
+    }
+    
+    try {
+      const res = await apiPost('/panier/ajouter/', {
+        product_id: selectedProductId,
+        quantity: 1,
+        embroidery_name: embroideryName,
+        personal_message: ''
+      });
+      
+      if (res.error) throw new Error(res.error);
+      
+      updateCartBadge(res.cart_count);
+      showToast(`✅ Tapis personnalisé ajouté au panier !`);
+      if (typeof refreshMiniCart === 'function') refreshMiniCart();
+    } catch(err) {
+      showToast(`❌ ${err.message}`, 'error');
+    }
+  });
+  
+  // Initialiser le premier produit sélectionné
+  document.querySelectorAll('.product-option').forEach((opt, index) => {
+    if (index === 0) {
+      selectedProduct = {
+        id: opt.dataset.productId,
+        name: opt.dataset.productName,
+        price: parseInt(opt.dataset.productPrice)
+      };
+      selectedProductId = selectedProduct.id;
+    }
+  });
+</script>
+
+{% endblock %} {% endcomment %}

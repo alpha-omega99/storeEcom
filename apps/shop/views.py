@@ -1,17 +1,7 @@
-"""
-ChicShop — Views shop (CORRIGÉ)
-
-MODIFICATIONS :
-- cart_items_with_products : label 'size' affiché comme 'Pour : [Destinataire]'
-- _process_checkout : selected_size sauvegardé comme 'recipient' dans OrderItem
-"""
 
 import json
 import logging
 from decimal import Decimal
-# Sépare l'import des modèles et de ta fonction/vue utility
-from apps.orders.models import Order, OrderItem
-from apps.orders.views import generate_order_reference
 
 from django.contrib import messages
 from django.core.paginator import Paginator
@@ -19,9 +9,12 @@ from django.db.models import Q, F
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+
+from apps.orders.models import Order, OrderItem
 from apps.products.models import Category, Product, ProductReview, PromoCode
 
 logger = logging.getLogger('chicshop')
+
 
 
 # ------------------------------------------------------------------ #
@@ -701,6 +694,31 @@ def _get_wishlist_ids(request):
 
     return session_ids
 
+def personalize_view(request):
+    """Page de personnalisation de tapis"""
+    categories = Category.objects.filter(is_active=True)
+    
+    # Récupérer tous les tapis disponibles
+    tapis_products = Product.objects.filter(
+        category__slug='tapis',
+        is_active=True,
+        is_available=True
+    ).select_related('category')
+    
+    # Récupérer les couleurs disponibles
+    colors = [
+        {'id': 'rose', 'name': 'Rose poudré', 'hex': '#E5B3B3'},
+        {'id': 'emerald', 'name': 'Émeraude', 'hex': '#1A3C2F'},
+        {'id': 'bone', 'name': 'Ivoire', 'hex': '#F2EBE5'},
+        {'id': 'gold', 'name': 'Or royal', 'hex': '#D4AF37'},
+    ]
+    
+    return render(request, 'shop/personalize.html', {
+        'categories': categories,
+        'tapis_products': tapis_products,
+        'colors': colors,
+        'current_cat': 'personnaliser',
+    })
 
 def _time_ago(dt):
     from django.utils import timezone
@@ -764,3 +782,24 @@ def mini_cart_api(request):
     response_data['subtotal'] = subtotal
     
     return JsonResponse(response_data)
+
+
+
+def order_detail_view(request, reference):
+    """Détail d'une commande pour l'utilisateur connecté"""
+    from apps.orders.models import Order
+    order = get_object_or_404(Order, reference=reference)
+    
+    # Vérifier l'accès
+    if request.user.is_authenticated:
+        if order.user != request.user and not request.user.is_staff:
+            messages.error(request, "Vous n'avez pas accès à cette commande.")
+            return redirect('shop:account')
+    else:
+        # Pour les invités, vérifier par email en session
+        guest_email = request.session.get('guest_order_email')
+        if order.customer_email != guest_email:
+            messages.error(request, "Vous n'avez pas accès à cette commande.")
+            return redirect('shop:home')
+    
+    return render(request, 'shop/order_detail.html', {'order': order})
