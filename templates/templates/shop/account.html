@@ -1,0 +1,82 @@
+{% extends 'shop/base.html' %}
+
+{% block title %}Mon compte — ChicShop{% endblock %}
+
+{% block content %}
+<div class="section" style="max-width:760px;margin:0 auto">
+
+  <div class="eyebrow">Mon espace</div>
+  <h1 style="font-family:'Cormorant Garamond',serif;font-size:clamp(36px,5vw,52px);color:var(--emerald);margin:8px 0 32px">
+    Mon <em>compte</em>
+  </h1>
+
+  {% if user.is_authenticated %}
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:32px">
+
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:24px">
+      <div class="eyebrow" style="margin-bottom:12px">Mes informations</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--emerald)">
+        {{ user.get_full_name|default:user.email }}
+      </div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px">{{ user.email }}</div>
+      <a href="{% url 'shop:home' %}" class="btn-ghost" style="display:inline-flex;margin-top:16px;font-size:13px;padding:8px 18px">
+        Modifier
+      </a>
+    </div>
+
+    <div style="background:var(--emerald);color:#fff;border-radius:20px;padding:24px;position:relative;overflow:hidden">
+      <div style="position:absolute;inset:0;opacity:.12;background-image:url('data:image/svg+xml;utf8,<svg width=\'40\' height=\'40\' viewBox=\'0 0 40 40\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M20 0 L40 20 L20 40 L0 20 Z\' fill=\'none\' stroke=\'white\' stroke-width=\'.5\'/></svg>')"></div>
+      <div style="position:relative">
+        <div class="eyebrow" style="color:var(--rose-soft);justify-content:flex-start;margin-bottom:10px">Code fidélité</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--gold-lt)">CHICSHOP15</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.65);margin-top:6px">-15% sur toute commande &ge; 5 000 F CFA</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:24px">
+    <div class="eyebrow" style="margin-bottom:16px">Mes commandes récentes</div>
+    {% for order in orders %}
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)">
+      <div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--emerald)">{{ order.reference }}</div>
+        <div style="font-size:12px;color:var(--muted)">{{ order.created_at|date:"d F Y" }} &middot; {{ order.total|intcomma }} F CFA</div>
+      </div>
+      <span style="font-size:11px;background:var(--emerald-lt);color:var(--emerald);padding:3px 12px;border-radius:40px">
+        {{ order.get_status_display }}
+      </span>
+    </div>
+    {% empty %}
+    <div class="empty-state" style="padding:32px 0">
+      <div class="empty-icon">&#127873;</div>
+      <p style="color:var(--muted)">Aucune commande pour le moment.</p>
+      <a href="{% url 'shop:catalog' %}" class="btn-emerald" style="display:inline-flex;margin-top:16px">
+        Commencer mes achats
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div style="margin-top:16px;text-align:right">
+    <a href="{% url 'shop:home' %}" class="btn-ghost" style="display:inline-flex;font-size:13px">
+      Se déconnecter
+    </a>
+  </div>
+
+  {% else %}
+  <div style="text-align:center;padding:60px 0">
+    <div style="font-size:48px;margin-bottom:16px">&#127800;</div>
+    <h2 style="font-family:'Cormorant Garamond',serif;font-size:36px;color:var(--emerald)">
+      Connectez-vous
+    </h2>
+    <p style="color:var(--muted);margin-top:8px">Accédez à vos commandes et à vos avantages fidélité.</p>
+    <div style="display:flex;gap:12px;justify-content:center;margin-top:24px">
+      <a href="{% url 'shop:home' %}" class="btn-emerald">Se connecter</a>
+      <a href="{% url 'shop:home' %}" class="btn-ghost">Créer un compte</a>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

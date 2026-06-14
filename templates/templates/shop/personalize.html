@@ -1,0 +1,136 @@
+{% extends 'shop/base.html' %}
+{% load humanize %}
+
+{% block title %}Personnaliser mon tapis — ChicShop{% endblock %}
+
+{% block content %}
+<div class="section personalize-page">
+
+  <div style="text-align:center;max-width:600px;margin:0 auto 0">
+    <div class="eyebrow" style="justify-content:center">Personnalisation</div>
+    <h1 style="font-family:'Cormorant Garamond',serif;font-size:clamp(40px,5vw,64px);color:var(--emerald);margin-top:10px">
+      Créez votre <em>tapis unique</em>
+    </h1>
+    <p style="color:var(--muted);font-size:14px;margin-top:12px">
+      Choisissez la couleur, brodez le prénom — l'artisanat fait le reste. Livré sous 5 à 7 jours.
+    </p>
+  </div>
+
+  <div class="pers-grid">
+
+    {# ---- Aperçu live ---- #}
+    <div class="pers-rug-wrap">
+      <div class="pers-rug-shape" id="persRug">
+        <div style="text-align:center;padding-top:40px">
+          <div class="rug-name" id="persRugName" data-testid="personalize-preview-name">Fatima</div>
+          <div class="rug-sub">Brodé main &middot; Abidjan</div>
+        </div>
+      </div>
+    </div>
+
+    {# ---- Contrôles ---- #}
+    <div class="pers-controls">
+
+      <div>
+        <span class="pers-label">Prénom à broder</span>
+        <input class="pers-name-input" id="persName" value="Fatima" maxlength="18"
+               data-testid="personalize-name-input"
+               placeholder="Tapez le prénom…"
+               oninput="document.getElementById('persRugName').textContent=this.value||'Votre prénom'">
+        <p style="font-size:11px;color:var(--muted);margin-top:6px">
+          18 caractères max &middot; Aminata proposera la version arabe via WhatsApp.
+        </p>
+      </div>
+
+      <div>
+        <span class="pers-label">Couleur du tapis</span>
+        <div class="color-options">
+          <button class="color-btn active" id="col-rose" data-testid="color-rose"
+                  onclick="setColor('#E5B3B3','#C56F6F','rose')">
+            <span class="color-swatch" style="background:#E5B3B3"></span> Rose poudré
+          </button>
+          <button class="color-btn" id="col-emerald" data-testid="color-emerald"
+                  onclick="setColor('#1A3C2F','#0E2419','emerald')">
+            <span class="color-swatch" style="background:#1A3C2F"></span> Émeraude
+          </button>
+          <button class="color-btn" id="col-gold" data-testid="color-gold"
+                  onclick="setColor('#D4AF37','#B8932A','gold')">
+            <span class="color-swatch" style="background:#D4AF37"></span> Or royal
+          </button>
+          <button class="color-btn" id="col-bone" data-testid="color-bone"
+                  onclick="setColor('#F2EBE5','#E6DFD5','bone')">
+            <span class="color-swatch" style="background:#F2EBE5;border:1px solid #ddd"></span> Ivoire
+          </button>
+        </div>
+      </div>
+
+      {% if tapis_products %}
+      <div>
+        <span class="pers-label">Modèle de tapis</span>
+        <div class="tapis-options">
+          {% for p in tapis_products %}
+          <button class="tapis-opt {% if forloop.first %}active{% endif %}"
+                  onclick="selectTapis(this,'{{ p.slug }}')"
+                  data-testid="tapis-option-{{ p.slug }}"
+                  data-slug="{{ p.slug }}" data-price="{{ p.price }}">
+            <div class="tapis-opt-img">
+              <img src="{{ p.image }}" alt="{{ p.name }}">
+            </div>
+            <div>
+              <div class="tapis-opt-name">{{ p.name }}</div>
+              <div class="tapis-opt-price">{{ p.price|intcomma }} F CFA</div>
+            </div>
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <button class="btn-emerald flex-1" data-testid="personalize-add-cart" onclick="addPersToCart()">
+          Ajouter au panier &middot; <span id="persPrice">6 500 F CFA</span>
+        </button>
+        <a href="{% url 'shop:catalog_category' 'tapis' %}" class="btn-ghost">Voir tous</a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+var selectedSlug = '{% if tapis_products %}{{ tapis_products.0.slug }}{% endif %}';
+var selectedPrice = {% if tapis_products %}{{ tapis_products.0.price }}{% else %}6500{% endif %};
+
+function fmt(n){ return Math.round(n).toLocaleString('fr-FR').replace(/,/g,' ') + ' F CFA'; }
+
+function setColor(c1, c2, id){
+  document.getElementById('persRug').style.background = 'linear-gradient(180deg,'+c1+' 0%,'+c2+' 100%)';
+  document.querySelectorAll('.color-btn').forEach(function(b){ b.classList.remove('active'); });
+  var el = document.getElementById('col-'+id);
+  if(el) el.classList.add('active');
+}
+
+function selectTapis(btn, slug){
+  document.querySelectorAll('.tapis-opt').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  selectedSlug = slug;
+  selectedPrice = parseInt(btn.dataset.price);
+  document.getElementById('persPrice').textContent = fmt(selectedPrice);
+}
+
+function addPersToCart(){
+  var name = document.getElementById('persName').value.trim();
+  if(!name){ alert('Veuillez saisir un prénom à broder.'); return; }
+  var cart = JSON.parse(localStorage.getItem('chicshop_cart_v1') || '[]');
+  var key = selectedSlug + '::' + name;
+  var idx = cart.findIndex(function(i){ return i.product_slug+'::'+i.embroidery_name === key; });
+  if(idx >= 0){ cart[idx].quantity++; }
+  else { cart.push({product_slug:selectedSlug, name:'Tapis personnalisé', price:selectedPrice, quantity:1, embroidery_name:name, image:''}); }
+  localStorage.setItem('chicshop_cart_v1', JSON.stringify(cart));
+  if(typeof updateCartBadge==='function') updateCartBadge(cart.reduce(function(s,i){return s+i.quantity;},0));
+  toggleCart && toggleCart();
+}
+
+document.getElementById('persPrice').textContent = fmt(selectedPrice);
+</script>
+{% endblock %}

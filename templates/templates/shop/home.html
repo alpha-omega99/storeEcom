@@ -1,0 +1,271 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}ChicShop — Tapis de Prière Personnalisé | Abidjan{% endblock %}
+
+{% block content %}
+
+{# ===== HERO ===== #}
+<section class="hero" aria-label="Bannière principale">
+  <div class="hero-bg"></div>
+  <div class="hero-inner">
+
+    <div class="hero-text">
+      <div class="eyebrow">Artisanat &middot; Brodé main &middot; Abidjan</div>
+      <h1 class="hero-h1">Le tapis qui<br>porte <em>son nom.</em></h1>
+      <p class="hero-sub">
+        Offrez un moment de paix unique avec nos tapis personnalisés à la main.
+        Un cadeau qui marque les cœurs pour l'Aïd, le mariage ou le Hajj.
+      </p>
+      <div class="hero-cta">
+        <a href="{% url 'shop:personalize' %}" class="btn-emerald" data-testid="hero-cta-create">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+          </svg>
+          Créer mon tapis unique
+        </a>
+        <a href="{% url 'shop:catalog' %}" class="btn-ghost" data-testid="hero-cta-catalog">
+          Voir la galerie
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+      <div class="hero-social-proof">
+        <div class="avatar-stack">
+          <span class="avatar">F</span>
+          <span class="avatar">A</span>
+          <span class="avatar">M</span>
+          <span class="avatar">K</span>
+        </div>
+        <div>
+          <div class="social-count">2 000+ familles</div>
+          <div class="social-stars">&#9733;&#9733;&#9733;&#9733;&#9733; 4.9/5 &mdash; 2 000 avis</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-visual" aria-hidden="true">
+      <div class="hero-badge">&#10022; Nouveau</div>
+      <div class="hero-price-float">
+        <div class="hero-price-label">à partir de</div>
+        <div class="hero-price-value">8 990 <small>F CFA</small></div>
+      </div>
+      <div class="rug-preview" id="heroRugPreview">
+        <div>
+          <div class="rug-name" id="heroRugName">Fatima</div>
+          <div class="rug-sub">Personnalisation dorée</div>
+        </div>
+      </div>
+      <div class="hero-input-row">
+        <input type="text" id="heroNameInput" placeholder="Tapez un prénom…"
+               maxlength="18" value="Fatima"
+               data-testid="hero-personalize-input"
+               oninput="document.getElementById('heroRugName').textContent=this.value||'Votre prénom'">
+        <a href="{% url 'shop:personalize' %}" class="btn-rose-sm">Commander</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{# ===== CATEGORIES BENTO ===== #}
+<section class="section section-categories">
+  <div class="section-head">
+    <div>
+      <div class="eyebrow">Nos univers</div>
+      <h2 class="section-title">Explorez la <em>collection</em></h2>
+    </div>
+    <a href="{% url 'shop:catalog' %}" class="section-link">Voir tout &rarr;</a>
+  </div>
+  <div class="bento-grid">
+    {% for cat in categories %}
+    <a href="{% url 'shop:catalog_category' cat.slug %}" class="bento-card bento-{{ forloop.counter }}"
+       data-testid="category-card-{{ cat.slug }}">
+      <div class="bento-icon">{{ cat.icon }}</div>
+      <div class="bento-text">
+        <h3>{{ cat.name }}</h3>
+        <p>{{ cat.description }}</p>
+      </div>
+      <svg class="bento-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+      </svg>
+    </a>
+    {% endfor %}
+    <a href="{% url 'shop:promotions' %}" class="bento-card bento-promo"
+       data-testid="category-card-promotions">
+      <div class="bento-icon">&#128293;</div>
+      <div class="bento-text">
+        <h3>Promotions</h3>
+        <p>-15% à -40%</p>
+      </div>
+      <svg class="bento-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+      </svg>
+    </a>
+  </div>
+</section>
+
+{# ===== PACKS SPIRITUELS ===== #}
+<section class="section-packs">
+  <div class="section-packs-inner">
+    <div class="section-packs-head">
+      <div class="eyebrow">Pensé comme une expérience</div>
+      <h2 class="section-title light">Nos <em>univers spirituels</em></h2>
+    </div>
+    <p class="section-packs-sub">
+      Chaque pack est conçu comme un cadeau — pas un simple produit. Brodé, parfumé, emballé à la main.
+    </p>
+    <div class="packs-grid">
+      {% for pack in packs %}
+      <article class="pack-card {% if forloop.counter == 2 %}pack-featured{% endif %}"
+               data-testid="pack-card-{{ pack.slug }}">
+        {% if forloop.counter == 2 %}
+        <div class="pack-badge-top">&#10084; Le choix des familles</div>
+        {% endif %}
+        <div class="pack-emoji">
+          {% if forloop.counter == 1 %}&#127873;
+          {% elif forloop.counter == 2 %}&#128171;
+          {% else %}&#128081;{% endif %}
+        </div>
+        <h3 class="pack-name">{{ pack.name }}</h3>
+        <p class="pack-tagline">{{ pack.tagline }}</p>
+        <div class="pack-price-block">
+          <span class="pack-price">{{ pack.price|intcomma }} <small>F CFA</small></span>
+          {% if pack.original_price %}<s class="pack-old">{{ pack.original_price|intcomma }} F</s>{% endif %}
+          {% if pack.discount_percent %}<span class="pack-disc">-{{ pack.discount_percent }}%</span>{% endif %}
+        </div>
+        <ul class="pack-items">
+          {% for item in pack.included_items|slice:":6" %}
+          <li><span class="pack-check">&#10003;</span> {{ item }}</li>
+          {% endfor %}
+        </ul>
+        <div class="pack-actions">
+          <button class="btn-rose w-full" data-testid="pack-add-{{ pack.slug }}"
+                  onclick="addToCart('{{ pack.slug }}')">
+            Choisir ce pack
+          </button>
+          <a href="{% url 'shop:product_detail' pack.slug %}" class="pack-detail-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+            </svg>
+          </a>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    <p class="packs-note">
+      &#127873; Emballage cadeau offert &middot; &#128666; Livraison Abidjan &middot;
+      Code <strong>CHICSHOP15</strong> pour -15%
+    </p>
+  </div>
+</section>
+
+{# ===== FLASH SALE ===== #}
+{% if flash_products %}
+<section class="section">
+  <div class="section-head">
+    <div>
+      <div class="eyebrow">&#128293; Vente flash</div>
+      <h2 class="section-title">Promotions <em>éphémères</em></h2>
+    </div>
+    <a href="{% url 'shop:promotions' %}" class="section-link">Tout voir &rarr;</a>
+  </div>
+  <div class="products-grid">
+    {% for product in flash_products %}
+    {% include 'shop/partials/product_card.html' with product=product %}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{# ===== FEATURED ===== #}
+<section class="section">
+  <div class="section-head">
+    <div>
+      <div class="eyebrow">Best-sellers</div>
+      <h2 class="section-title">Les plus <em>populaires</em></h2>
+    </div>
+    <a href="{% url 'shop:catalog' %}" class="section-link">Voir tout &rarr;</a>
+  </div>
+  <div class="products-grid">
+    {% for product in featured_products %}
+    {% include 'shop/partials/product_card.html' with product=product %}
+    {% empty %}
+    <p style="color:var(--muted);grid-column:1/-1">Aucun produit pour le moment.</p>
+    {% endfor %}
+  </div>
+</section>
+
+{# ===== EDITORIAL BANNERS ===== #}
+<section class="section">
+  <div class="editorial-grid">
+    <a href="{% url 'shop:catalog_category' 'packs' %}" class="editorial-card editorial-rose">
+      <div class="editorial-text">
+        <div class="eyebrow">Collection Hajj</div>
+        <h3>Le voyage <em>sacré</em> commence ici.</h3>
+      </div>
+      <span class="editorial-cta">Découvrir &rarr;</span>
+    </a>
+    <a href="{% url 'shop:personalize' %}" class="editorial-card editorial-emerald">
+      <div class="editorial-text">
+        <div class="eyebrow">Broderie d'or</div>
+        <h3>Votre prénom, en <em>calligraphie dorée.</em></h3>
+      </div>
+      <span class="editorial-cta">Créer mon tapis &rarr;</span>
+    </a>
+  </div>
+</section>
+
+{# ===== TESTIMONIALS ===== #}
+<section class="section">
+  <div class="section-head center">
+    <div>
+      <div class="eyebrow">La preuve par 2 000+</div>
+      <h2 class="section-title">Ce qu'en disent <em>nos sœurs</em></h2>
+    </div>
+  </div>
+  <div class="testi-grid">
+    {% for review in testimonials %}
+    <article class="testi-card">
+      <div class="testi-head">
+        <div class="testi-avatar" style="background:{{ review.avatar_bg }};color:{{ review.avatar_color }}">
+          {{ review.initial }}
+        </div>
+        <div>
+          <div class="testi-name">{{ review.name }}</div>
+          <div class="testi-loc">{{ review.city }}</div>
+        </div>
+      </div>
+      <div class="testi-stars">
+        {% for i in "12345" %}{% if forloop.counter <= review.rating %}&#9733;{% endif %}{% endfor %}
+      </div>
+      <blockquote class="testi-text">&ldquo;{{ review.comment }}&rdquo;</blockquote>
+      <div class="testi-time">{{ review.time_ago }} &middot; Lu &#10003;&#10003;</div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+{# ===== STATS ===== #}
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-number">2 000+</div>
+    <div class="stat-label">Familles satisfaites</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number" id="salesCpt">{{ today_sales|default:14 }}</div>
+    <div class="stat-label">Personnalisés aujourd'hui</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number">4.9&#9733;</div>
+    <div class="stat-label">Note moyenne</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number">5 min</div>
+    <div class="stat-label">Réponse WhatsApp</div>
+  </div>
+</div>
+
+{% endblock %}

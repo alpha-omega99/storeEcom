@@ -1,0 +1,111 @@
+{% extends 'shop/base.html' %}
+{% load humanize %}
+
+{% block title %}Mon panier — ChicShop{% endblock %}
+
+{% block content %}
+<div class="section" style="max-width:900px;margin:0 auto">
+
+  <div class="eyebrow">Votre panier</div>
+  <h1 style="font-family:'Cormorant Garamond',serif;font-size:clamp(36px,5vw,56px);color:var(--emerald);margin:8px 0 32px">
+    Mon <em>panier</em>
+  </h1>
+
+  <div id="cartPageContent">
+    <div class="empty-state" id="cartEmpty" style="display:none">
+      <div class="empty-icon">&#127800;</div>
+      <p style="color:var(--muted);font-size:15px">Votre panier est vide pour l'instant.</p>
+      <a href="{% url 'shop:catalog' %}" class="btn-emerald" style="margin-top:20px;display:inline-flex">
+        Découvrir nos tapis
+      </a>
+    </div>
+
+    <div id="cartItems"></div>
+
+    <div id="cartSummaryBlock" style="display:none;margin-top:28px;
+         background:var(--surface);border:1px solid var(--line);
+         border-radius:20px;padding:24px;max-width:480px;margin-left:auto">
+      <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:10px">
+        <span style="color:var(--muted)">Sous-total</span>
+        <span id="cartPageSubtotal" style="font-weight:500;color:var(--emerald)"></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:16px">
+        <span style="color:var(--muted)">Livraison</span>
+        <span id="cartPageDelivery"></span>
+      </div>
+      <a href="{% url 'shop:checkout' %}" class="btn-emerald w-full" style="display:flex;justify-content:center">
+        Passer commande &rarr;
+      </a>
+      <a href="{% url 'shop:catalog' %}" class="btn-ghost w-full" style="display:flex;justify-content:center;margin-top:10px">
+        Continuer mes achats
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function fmt(n){ return Math.round(n).toLocaleString('fr-FR').replace(/,/g,' ') + ' F CFA'; }
+
+function renderCartPage(){
+  var cart = JSON.parse(localStorage.getItem('chicshop_cart_v1') || '[]');
+  var empty = document.getElementById('cartEmpty');
+  var itemsDiv = document.getElementById('cartItems');
+  var sumBlock = document.getElementById('cartSummaryBlock');
+
+  if(!cart.length){
+    empty.style.display = 'block';
+    itemsDiv.innerHTML = '';
+    sumBlock.style.display = 'none';
+    return;
+  }
+  empty.style.display = 'none';
+  sumBlock.style.display = 'block';
+
+  var sub = cart.reduce(function(s,it){return s+it.price*it.quantity;},0);
+  var del = sub >= 15000 ? 0 : 1500;
+  document.getElementById('cartPageSubtotal').textContent = fmt(sub);
+  document.getElementById('cartPageDelivery').textContent = del === 0 ? 'Offerte' : fmt(del);
+
+  itemsDiv.innerHTML = '<ul style="list-style:none;padding:0;border-top:1px solid var(--line)">'
+    + cart.map(function(it, i){
+      return '<li style="display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--line);align-items:center">'
+        + '<div style="width:80px;height:80px;border-radius:12px;background:var(--rose-50);overflow:hidden;flex-shrink:0">'
+        + (it.image?'<img src="'+it.image+'" style="width:100%;height:100%;object-fit:cover" alt="">':'')
+        + '</div>'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="font-family:\'Cormorant Garamond\',serif;font-size:20px;color:var(--emerald)">'+it.name+'</div>'
+        + (it.embroidery_name?'<div style="font-family:\'Amiri\',serif;font-size:16px;color:var(--gold)">'+it.embroidery_name+'</div>':'')
+        + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">'
+        + '<div style="display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:40px">'
+        + '<button onclick="cartPageQty('+i+',-1)" style="width:32px;height:32px;border:none;background:none;cursor:pointer;font-size:16px;color:var(--emerald)">&#8722;</button>'
+        + '<span style="padding:0 12px;font-size:14px">'+it.quantity+'</span>'
+        + '<button onclick="cartPageQty('+i+',1)"  style="width:32px;height:32px;border:none;background:none;cursor:pointer;font-size:16px;color:var(--emerald)">&#43;</button>'
+        + '</div>'
+        + '<span style="font-weight:500;color:var(--emerald)">'+fmt(it.price*it.quantity)+'</span>'
+        + '</div>'
+        + '</div>'
+        + '<button onclick="cartPageRemove('+i+')" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:20px;padding:4px" title="Retirer">&#215;</button>'
+        + '</li>';
+    }).join('')
+    + '</ul>';
+}
+
+function cartPageQty(i, d){
+  var cart = JSON.parse(localStorage.getItem('chicshop_cart_v1') || '[]');
+  cart[i].quantity = Math.max(1, cart[i].quantity + d);
+  localStorage.setItem('chicshop_cart_v1', JSON.stringify(cart));
+  if(typeof updateCartBadge==='function') updateCartBadge(cart.reduce(function(s,it){return s+it.quantity;},0));
+  renderCartPage();
+}
+function cartPageRemove(i){
+  var cart = JSON.parse(localStorage.getItem('chicshop_cart_v1') || '[]');
+  cart.splice(i,1);
+  localStorage.setItem('chicshop_cart_v1', JSON.stringify(cart));
+  if(typeof updateCartBadge==='function') updateCartBadge(cart.reduce(function(s,it){return s+it.quantity;},0));
+  renderCartPage();
+}
+
+renderCartPage();
+</script>
+{% endblock %}

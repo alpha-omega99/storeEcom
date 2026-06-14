@@ -1,0 +1,48 @@
+<header class="site-header" id="siteHeader">
+  <div class="header-inner">
+
+    <a href="{% url 'shop:home' %}" class="brand" data-testid="brand-logo">
+      <div class="brand-icon">C</div>
+      <div>
+        <div class="brand-name">ChicShop</div>
+        <div class="brand-tag">Abidjan</div>
+      </div>
+    </a>
+
+    <nav class="main-nav">
+      <a href="{% url 'shop:catalog' %}"                    data-testid="nav-boutique">Boutique</a>
+      <a href="{% url 'shop:catalog_category' 'packs' %}"   data-testid="nav-packs">Packs cadeaux</a>
+      <a href="{% url 'shop:catalog_category' 'tapis' %}"   data-testid="nav-tapis">Tapis</a>
+      <a href="{% url 'shop:catalog_category' 'chapelets' %}" data-testid="nav-chapelets">Chapelets</a>
+      <a href="{% url 'shop:personalize' %}"                data-testid="nav-personnaliser">Personnaliser</a>
+    </nav>
+
+    <form class="search-form" action="{% url 'shop:catalog' %}" method="get">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="text" name="q" placeholder="Rechercher un tapis, un pack…" data-testid="search-input"
+             value="{{ request.GET.q|default:'' }}">
+    </form>
+
+    <div class="header-actions">
+      <button class="action-btn" data-testid="wishlist-btn" aria-label="Favoris">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+      </button>
+      <button class="action-btn cart-btn" data-testid="open-cart-btn" onclick="toggleCart()" aria-label="Panier">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+        <span class="cart-badge" id="cartBadge" data-testid="cart-count-badge">0</span>
+      </button>
+      <button class="action-btn mobile-menu-btn" data-testid="mobile-menu-btn" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 12h18"/><path d="M3 6h18"/><path d="M3 18h18"/>
+        </svg>
+      </button>
+    </div>
+
+  </div>
+</header>

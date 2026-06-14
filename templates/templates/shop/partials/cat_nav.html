@@ -1,0 +1,14 @@
+<nav class="cat-nav" id="catNav">
+  <div class="cat-nav-inner">
+    {% for cat in categories %}
+    <a href="{% url 'shop:catalog_category' cat.slug %}" data-testid="cat-nav-{{ cat.slug }}"
+       {% if current_category.slug == cat.slug %}class="active"{% endif %}>
+      <span class="cat-icon">{{ cat.icon }}</span>
+      {{ cat.name }}
+    </a>
+    {% endfor %}
+    <a href="{% url 'shop:promotions' %}" class="cat-promo" data-testid="cat-nav-promotions">
+      <span class="cat-icon">&#128293;</span> Promotions
+    </a>
+  </div>
+</nav>

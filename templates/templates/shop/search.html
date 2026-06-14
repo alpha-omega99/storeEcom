@@ -1,0 +1,33 @@
+{% extends 'shop/base.html' %}
+{% load humanize %}
+
+{% block title %}Recherche &mdash; ChicShop{% endblock %}
+
+{% block content %}
+<div class="section">
+  <div class="eyebrow">Résultats</div>
+  <h1 class="page-title">
+    {% if query %}Résultats pour <em>&ldquo;{{ query }}&rdquo;</em>
+    {% else %}Recherche{% endif %}
+  </h1>
+  <p class="page-subtitle" style="margin-bottom:28px">
+    {{ products|length }} produit{{ products|length|pluralize }} trouvé{{ products|length|pluralize }}
+  </p>
+
+  {% if products %}
+  <div class="products-grid">
+    {% for product in products %}
+    {% include 'shop/partials/product_card.html' with product=product %}
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">&#127800;</div>
+    <p style="color:var(--muted)">Aucun produit trouvé pour &ldquo;{{ query }}&rdquo;.</p>
+    <a href="{% url 'shop:catalog' %}" class="btn-emerald" style="margin-top:20px;display:inline-flex">
+      Voir toute la boutique
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

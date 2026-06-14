@@ -1,0 +1,211 @@
+{% extends 'shop/base.html' %}
+{% load humanize %}
+
+{% block title %}Finaliser ma commande — ChicShop{% endblock %}
+
+{% block content %}
+<div class="section checkout-page">
+
+  <div class="checkout-head">
+    <div class="eyebrow" style="justify-content:center">Finalisation</div>
+    <h1 class="page-title">Votre <em>commande</em></h1>
+  </div>
+
+  <div class="checkout-layout">
+
+    {# ---- Formulaire ---- #}
+    <div class="checkout-form">
+
+      <div class="form-section">
+        <div class="eyebrow" style="margin-bottom:16px">Informations de livraison</div>
+        <div class="form-grid">
+          <input data-testid="ck-fullname" id="ckName"    placeholder="Nom complet" required>
+          <input data-testid="ck-phone"    id="ckPhone"   placeholder="Téléphone (WhatsApp)" required>
+          <input data-testid="ck-email"    id="ckEmail"   placeholder="Email (optionnel)" type="email">
+          <input data-testid="ck-city"     id="ckCity"    placeholder="Ville" value="Abidjan" required>
+          <input data-testid="ck-address"  id="ckAddress" placeholder="Adresse de livraison (quartier, repère)" class="full" required>
+          <textarea data-testid="ck-note"  id="ckNote"    placeholder="Note (broderie en arabe, livraison rapide…)"></textarea>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="eyebrow" style="margin-bottom:16px">Mode de paiement</div>
+        <div class="payment-options">
+          <button type="button" class="payment-btn active" data-testid="pay-wave"   data-method="wave"   onclick="setPayment(this)">
+            <span class="payment-emoji">&#127744;</span>
+            <span class="payment-name">Wave</span>
+            <span class="payment-desc">Paiement sécurisé</span>
+          </button>
+          <button type="button" class="payment-btn" data-testid="pay-orange" data-method="orange" onclick="setPayment(this)">
+            <span class="payment-emoji">&#127818;</span>
+            <span class="payment-name">Orange Money</span>
+            <span class="payment-desc">Paiement sécurisé</span>
+          </button>
+          <button type="button" class="payment-btn" data-testid="pay-cash"   data-method="cash"   onclick="setPayment(this)">
+            <span class="payment-emoji">&#128176;</span>
+            <span class="payment-name">Espèces</span>
+            <span class="payment-desc">À la livraison</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    {# ---- Récapitulatif ---- #}
+    <aside>
+      <div class="summary-card">
+        <div class="eyebrow">Récapitulatif</div>
+        <div id="summaryItems"></div>
+
+        <div class="promo-row">
+          <input data-testid="promo-input" id="promoInput" placeholder="Code promo (ex. CHICSHOP15)">
+          <button data-testid="promo-apply" onclick="applyPromo()">Appliquer</button>
+        </div>
+
+        <div class="summary-totals">
+          <div class="total-row">
+            <span style="color:rgba(255,255,255,.7)">Sous-total</span>
+            <span data-testid="sum-subtotal" id="sumSubtotal">0 F CFA</span>
+          </div>
+          <div class="total-row" id="promoRow" style="display:none">
+            <span class="promo-label">Réduction</span>
+            <span class="promo-val" id="sumDiscount">-0 F CFA</span>
+          </div>
+          <div class="total-row">
+            <span style="color:rgba(255,255,255,.7)">Livraison</span>
+            <span id="sumDelivery">1 500 F CFA</span>
+          </div>
+          <div class="total-row grand">
+            <span>Total</span>
+            <span class="grand-total" data-testid="sum-total" id="sumTotal">0 F CFA</span>
+          </div>
+        </div>
+
+        <button class="btn-rose w-full" style="margin-top:16px;padding:13px"
+                data-testid="place-order-btn" id="placeOrderBtn" onclick="placeOrder()">
+          Valider ma commande &#10084;
+        </button>
+        <p class="summary-note">Aminata vous confirme sur WhatsApp dans les 5 min.</p>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+<script>
+var paymentMethod = 'wave';
+var promoData = null;
+var cartItems = [];
+
+function setPayment(btn){
+  document.querySelectorAll('.payment-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  paymentMethod = btn.dataset.method;
+}
+
+function fmt(n){ return Math.round(n).toLocaleString('fr-FR').replace(/,/g,' ') + ' F CFA'; }
+
+function renderSummary(){
+  cartItems = JSON.parse(localStorage.getItem('chicshop_cart_v1') || '[]');
+  var container = document.getElementById('summaryItems');
+  if(!cartItems.length){
+    container.innerHTML = '<p style="color:rgba(255,255,255,.5);font-size:13px;padding:12px 0">Panier vide</p>';
+    return;
+  }
+  container.innerHTML = cartItems.map(function(it,i){
+    return '<div class="summary-item" data-testid="summary-item-'+i+'">'
+      + '<div class="summary-img">'+(it.image?'<img src="'+it.image+'" alt="">':'')+'</div>'
+      + '<div class="summary-info">'
+      + '<div>'+it.name+' <span class="qty">&times; '+it.quantity+'</span></div>'
+      + (it.embroidery_name?'<div class="embroidery-name">'+it.embroidery_name+'</div>':'')
+      + '</div>'
+      + '<div class="summary-price">'+fmt(it.price * it.quantity)+'</div>'
+      + '</div>';
+  }).join('');
+  updateTotals();
+}
+
+function updateTotals(){
+  var sub = cartItems.reduce(function(s,it){return s+it.price*it.quantity;},0);
+  var disc = promoData ? promoData.discount : 0;
+  var del = sub >= 15000 ? 0 : 1500;
+  var total = Math.max(0, sub - disc + del);
+  document.getElementById('sumSubtotal').textContent = fmt(sub);
+  document.getElementById('sumDelivery').textContent = del === 0 ? 'Offerte' : fmt(del);
+  document.getElementById('sumTotal').textContent    = fmt(total);
+  if(disc > 0){
+    document.getElementById('promoRow').style.display = 'flex';
+    document.getElementById('sumDiscount').textContent = '-' + fmt(disc);
+  }
+}
+
+function getCookie(name){
+  var m = document.cookie.match('(^|;)\\s*'+name+'\\s*=\\s*([^;]+)');
+  return m ? m.pop() : '';
+}
+
+async function applyPromo(){
+  var code = document.getElementById('promoInput').value.trim().toUpperCase();
+  if(!code) return;
+  var sub = cartItems.reduce(function(s,it){return s+it.price*it.quantity;},0);
+  try {
+    var res = await fetch('/api/promo/validate/', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
+      body: JSON.stringify({code:code, subtotal:sub})
+    });
+    if(!res.ok) throw new Error('invalid');
+    promoData = await res.json();
+    showToast && showToast('Code ' + promoData.code + ' appliqué : -' + promoData.percent + '%');
+    updateTotals();
+  } catch(e){
+    showToast && showToast('Code promo invalide', 'error');
+    promoData = null;
+    updateTotals();
+  }
+}
+
+async function placeOrder(){
+  var name    = document.getElementById('ckName').value.trim();
+  var phone   = document.getElementById('ckPhone').value.trim();
+  var city    = document.getElementById('ckCity').value.trim();
+  var address = document.getElementById('ckAddress').value.trim();
+  if(!name||!phone||!city||!address){
+    showToast && showToast('Veuillez compléter vos informations', 'error');
+    return;
+  }
+  if(!cartItems.length){ showToast && showToast('Panier vide', 'error'); return; }
+
+  var btn = document.getElementById('placeOrderBtn');
+  btn.disabled = true; btn.textContent = 'Validation…';
+
+  try {
+    var res = await fetch('/api/orders/', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
+      body: JSON.stringify({
+        full_name: name, phone: phone,
+        email: document.getElementById('ckEmail').value,
+        city: city, address: address,
+        note: document.getElementById('ckNote').value,
+        items: cartItems.map(function(it){
+          return {product_slug:it.product_slug, name:it.name, price:it.price,
+                  quantity:it.quantity, embroidery_name:it.embroidery_name||null, image:it.image||null};
+        }),
+        payment_method: paymentMethod,
+        promo_code: promoData ? promoData.code : null
+      })
+    });
+    var data = await res.json();
+    if(!res.ok) throw new Error(data.detail || 'Erreur');
+    localStorage.removeItem('chicshop_cart_v1');
+    window.location.href = '/commande/' + data.reference + '/';
+  } catch(e){
+    showToast && showToast(e.message || 'Erreur lors de la commande', 'error');
+    btn.disabled = false; btn.textContent = 'Valider ma commande ❤';
+  }
+}
+
+renderSummary();
+</script>
+{% endblock %}

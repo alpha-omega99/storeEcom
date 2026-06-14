@@ -1,0 +1,64 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}ChicShop — Tapis de Prière Personnalisé | Abidjan{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}Tapis de prière brodés à la main, personnalisés avec votre prénom. Packs cadeaux pour l'Aïd, le mariage et le Hajj. Livraison rapide à Abidjan.{% endblock %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=Outfit:wght@300;400;500;600&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'shop/css/chicshop.css' %}">
+  {% block extra_css %}{% endblock %}
+  {% csrf_token %}
+</head>
+<body>
+
+  <div id="toast"></div>
+
+  {% include 'shop/partials/topbar.html' %}
+  {% include 'shop/partials/header.html' %}
+  {% include 'shop/partials/cat_nav.html' %}
+  {% include 'shop/partials/trustbar.html' %}
+
+  <main class="main">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include 'shop/partials/footer.html' %}
+  {% include 'shop/partials/whatsapp_float.html' %}
+  {% include 'shop/partials/cart_drawer.html' %}
+
+  <script src="{% static 'shop/js/utils.js' %}"></script>
+  <script src="{% static 'shop/js/cart.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+
+  <script>
+  /* ---- Flash countdown ---- */
+  (function(){
+    function tick(){
+      var end=new Date(); end.setHours(23,59,59,0);
+      var d=Math.max(0,end-new Date());
+      var h=String(Math.floor(d/3600000)).padStart(2,'0');
+      var m=String(Math.floor(d%3600000/60000)).padStart(2,'0');
+      var s=String(Math.floor(d%60000/1000)).padStart(2,'0');
+      var el=document.getElementById('flashTimer');
+      if(el) el.textContent=h+':'+m+':'+s;
+    }
+    setInterval(tick,1000); tick();
+  })();
+
+  /* ---- Cart drawer toggle ---- */
+  function toggleCart(){
+    var d=document.getElementById('cartDrawer');
+    var o=document.getElementById('cartDrawerOverlay');
+    if(!d) return;
+    var open=d.classList.toggle('open');
+    o.classList.toggle('open',open);
+    d.setAttribute('aria-hidden', open?'false':'true');
+    document.body.style.overflow=open?'hidden':'';
+    if(open && typeof refreshCartDrawer==='function') refreshCartDrawer();
+  }
+  </script>
+</body>
+</html>

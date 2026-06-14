@@ -1,0 +1,36 @@
+{% load humanize %}
+<article class="product-card" data-testid="product-card-{{ product.slug }}">
+  <a href="{% url 'shop:product_detail' product.slug %}" class="product-img-wrap">
+    <img src="{{ product.image }}" alt="{{ product.name }}" loading="lazy">
+    {% if product.badge %}
+    <span class="product-badge">{{ product.badge }}</span>
+    {% endif %}
+    {% if product.original_price %}
+    <span class="product-discount">-{{ product.discount_percent|default:"0" }}%</span>
+    {% endif %}
+    <button class="product-quick-add"
+            data-testid="quick-add-{{ product.slug }}"
+            onclick="event.preventDefault(); addToCart('{{ product.slug }}')"
+            aria-label="Ajouter au panier">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+        <path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>
+      </svg>
+    </button>
+  </a>
+  <div class="product-info">
+    <div class="product-rating">
+      <span class="star">&#9733;</span>
+      <span class="rating-val">{{ product.rating }}</span>
+      <span class="rating-count">&middot; {{ product.review_count }} avis</span>
+    </div>
+    <h3 class="product-name">{{ product.name }}</h3>
+    {% if product.tagline %}<p class="product-tagline">{{ product.tagline }}</p>{% endif %}
+    <div class="product-price-row">
+      <span class="product-price">{{ product.price|intcomma }} F CFA</span>
+      {% if product.original_price %}
+      <s class="product-old">{{ product.original_price|intcomma }} F CFA</s>
+      {% endif %}
+    </div>
+  </div>
+</article>

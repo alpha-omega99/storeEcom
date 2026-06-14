@@ -1,0 +1,144 @@
+{% extends 'shop/base.html' %}
+{% load humanize %}
+
+{% block title %}{{ product.name }} — ChicShop{% endblock %}
+
+{% block content %}
+<div class="section product-page">
+
+  <div class="breadcrumbs">
+    <a href="{% url 'shop:home' %}">Accueil</a> &rsaquo;
+    <a href="{% url 'shop:catalog' %}">Boutique</a> &rsaquo;
+    <span>{{ product.name }}</span>
+  </div>
+
+  <div class="product-layout">
+
+    {# --- Galerie --- #}
+    <div class="product-gallery">
+      <div class="product-main-img">
+        <img id="mainImg" src="{{ product.image }}" alt="{{ product.name }}">
+        {% if product.badge %}
+        <span class="product-badge-lg">{{ product.badge }}</span>
+        {% endif %}
+        <div id="embroideryOverlay" class="embroidery-overlay" style="display:none">
+          <span class="embroidery-label">Aperçu broderie</span>
+          <div class="embroidery-name" id="embroideryPreviewName"></div>
+        </div>
+      </div>
+      {% if product.gallery|length > 1 %}
+      <div class="product-thumbs">
+        {% for img in product.gallery %}
+        <button onclick="document.getElementById('mainImg').src='{{ img }}';
+                         document.querySelectorAll('.thumb').forEach(t=>t.classList.remove('active'));
+                         this.classList.add('active')"
+                class="thumb {% if forloop.first %}active{% endif %}">
+          <img src="{{ img }}" alt="">
+        </button>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    {# --- Infos --- #}
+    <div class="product-details">
+      <div class="eyebrow">{{ product.category.name }}</div>
+      <h1 class="product-title">{{ product.name }}</h1>
+      {% if product.tagline %}<p class="product-tagline">{{ product.tagline }}</p>{% endif %}
+
+      <div class="product-rating-row">
+        <span class="star">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+        <span class="rating-val">{{ product.rating }}</span>
+        <span class="rating-count">&mdash; {{ product.review_count }} avis</span>
+      </div>
+
+      <div class="product-price-big">
+        <span class="price-current">{{ product.price|intcomma }} F CFA</span>
+        {% if product.original_price %}
+        <s class="price-old">{{ product.original_price|intcomma }} F CFA</s>
+        <span class="price-discount">-{{ product.discount_percent }}%</span>
+        {% endif %}
+      </div>
+
+      <p class="product-desc">{{ product.description }}</p>
+
+      {% if product.included_items %}
+      <div class="product-includes">
+        <div class="eyebrow">Ce que contient ce pack</div>
+        <ul>
+          {% for item in product.included_items %}
+          <li><span class="check">&#10003;</span> {{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% if product.allows_embroidery %}
+      <div class="product-embroidery">
+        <span class="eyebrow">Prénom à broder (calligraphie dorée)</span>
+        <input type="text" id="embroideryInput" data-testid="embroidery-input"
+               placeholder="Ex. Fatima" maxlength="18"
+               oninput="document.getElementById('embroideryPreviewName').textContent=this.value;
+                        document.getElementById('embroideryOverlay').style.display=this.value?'flex':'none'">
+        <p class="input-hint">18 caractères max &middot; Aminata peut aussi broder en arabe via WhatsApp.</p>
+      </div>
+      {% endif %}
+
+      <div class="product-actions">
+        <div class="qty-selector">
+          <button onclick="changeQty(-1)" data-testid="qty-decrease">&#8722;</button>
+          <span id="qtyValue" data-testid="qty-value">1</span>
+          <button onclick="changeQty(1)" data-testid="qty-increase">&#43;</button>
+        </div>
+        <button class="btn-emerald flex-1" data-testid="add-to-cart-btn" onclick="addProductToCart()">
+          Ajouter au panier
+        </button>
+      </div>
+      <button class="btn-rose w-full" data-testid="buy-now-btn" onclick="buyNow()">
+        Acheter maintenant
+      </button>
+
+      <div class="product-trust">
+        <div class="trust-item">
+          <span class="trust-icon">&#128666;</span>Livraison Abidjan 24-48h
+        </div>
+        <div class="trust-item">
+          <span class="trust-icon">&#127873;</span>Emballage cadeau offert
+        </div>
+        <div class="trust-item">
+          <span class="trust-icon">&#128274;</span>Wave / OM / Cash
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Produits liés #}
+  {% if related %}
+  <section class="section" style="padding-left:0;padding-right:0;padding-bottom:0">
+    <h2 class="section-title" style="margin-bottom:28px">Vous pourriez aussi <em>aimer</em></h2>
+    <div class="products-grid">
+      {% for p in related %}
+      {% include 'shop/partials/product_card.html' with product=p %}
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+</div>
+
+<script>
+var qty = 1;
+function changeQty(d){
+  qty = Math.max(1, qty+d);
+  document.getElementById('qtyValue').textContent = qty;
+}
+function addProductToCart(){
+  var emb = (document.getElementById('embroideryInput')||{}).value || '';
+  addToCart('{{ product.slug }}', qty, emb);
+}
+function buyNow(){
+  addProductToCart();
+  setTimeout(function(){ window.location.href = '{% url "shop:checkout" %}'; }, 300);
+}
+</script>
+{% endblock %}

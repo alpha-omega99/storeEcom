@@ -1,0 +1,38 @@
+{% load static %}
+<div id="cartDrawerOverlay" class="cart-drawer-overlay" onclick="toggleCart()"></div>
+
+<aside id="cartDrawer" class="cart-drawer" aria-hidden="true" aria-label="Mini panier">
+
+  <div class="cd-head">
+    <div>
+      <div class="eyebrow">Votre panier</div>
+      <h3 class="cd-title" id="cdTitle">0 article</h3>
+    </div>
+    <button class="cd-close" id="closeCartDrawer" onclick="toggleCart()" aria-label="Fermer">&#10005;</button>
+  </div>
+
+  <div class="cd-items" id="cdItems">
+    <div class="cd-empty" id="cdEmpty" style="display:none">
+      <div style="font-size:40px;margin-bottom:12px">&#127800;</div>
+      <p style="color:var(--muted)">Votre panier est vide</p>
+      <a href="{% url 'shop:catalog' %}" class="btn-emerald" style="margin-top:16px;display:inline-flex" onclick="toggleCart()">
+        Découvrir nos tapis
+      </a>
+    </div>
+    <ul id="cdList" style="list-style:none;padding:0;margin:0"></ul>
+  </div>
+
+  <div class="cd-foot" id="cdFoot" style="display:none">
+    <div class="cd-subtotal">
+      <span style="color:var(--muted)">Sous-total</span>
+      <span id="cdSubtotal" style="font-weight:500;color:var(--emerald)">0 F CFA</span>
+    </div>
+    <a href="{% url 'shop:checkout' %}" class="checkout-btn" data-testid="goto-checkout-btn"
+       onclick="toggleCart()">Passer commande &rarr;</a>
+    <a href="{% url 'shop:catalog' %}" onclick="toggleCart()"
+       style="display:block;text-align:center;margin-top:10px;font-size:12px;color:var(--muted)">
+      Continuer mes achats
+    </a>
+  </div>
+
+</aside>

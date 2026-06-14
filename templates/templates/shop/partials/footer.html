@@ -1,0 +1,66 @@
+{% load static %}
+<footer class="site-footer">
+  <div class="footer-inner">
+
+    <div class="footer-brand">
+      <div class="footer-logo">ChicShop</div>
+      <p class="footer-desc">Le tapis qui porte son nom.<br>Artisanat brodé main à Abidjan, Côte d'Ivoire.</p>
+      <div class="footer-social">
+        <a href="https://wa.me/{{ whatsapp_number|default:'2250103976779' }}" data-testid="footer-whatsapp" aria-label="WhatsApp">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+          </svg>
+        </a>
+        <a href="#" data-testid="footer-instagram" aria-label="Instagram">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="2" width="20" height="20" rx="5"/>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+          </svg>
+        </a>
+        <a href="mailto:hello@chicshop.ci" data-testid="footer-mail" aria-label="Email">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="footer-col">
+      <h4>Boutique</h4>
+      <ul>
+        <li><a href="{% url 'shop:catalog_category' 'packs' %}">Packs cadeaux</a></li>
+        <li><a href="{% url 'shop:catalog_category' 'tapis' %}">Tapis de prière</a></li>
+        <li><a href="{% url 'shop:catalog_category' 'chapelets' %}">Chapelets</a></li>
+        <li><a href="{% url 'shop:catalog_category' 'coran' %}">Saint Coran</a></li>
+        <li><a href="{% url 'shop:personalize' %}">Personnaliser</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>Maison</h4>
+      <ul>
+        <li>Notre histoire</li>
+        <li>Atelier de broderie</li>
+        <li>Livraison &amp; retours</li>
+        <li>Aide &amp; FAQ</li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>Restez informée</h4>
+      <p class="footer-news">Recevez nos collections en avant-première et 10% sur votre 1ère commande.</p>
+      <form class="newsletter-form" onsubmit="event.preventDefault()">
+        <input data-testid="newsletter-input" placeholder="votre email" type="email">
+        <button data-testid="newsletter-submit" type="submit">OK</button>
+      </form>
+      <div class="footer-phone">&#9742; +225 01 03 97 67 79 &mdash; Aminata</div>
+    </div>
+
+  </div>
+  <div class="footer-bottom">
+    <span>&copy; 2026 ChicShop &middot; Abidjan, Côte d'Ivoire</span>
+    <span>Conçu avec &#9829; pour les familles musulmanes</span>
+  </div>
+</footer>

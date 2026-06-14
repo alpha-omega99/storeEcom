@@ -1,0 +1,46 @@
+{% extends 'shop/base.html' %}
+{% load humanize %}
+
+{% block title %}Promotions — ChicShop{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="eyebrow">Offres limitées</div>
+  <h1 class="page-title">Promotions <em>éphémères</em></h1>
+  <p class="page-subtitle" style="margin-bottom:8px">Profitez-en avant la fin du stock.</p>
+
+  <div style="display:inline-flex;align-items:center;gap:10px;
+       background:var(--emerald);color:#fff;
+       border-radius:var(--radius-full);padding:8px 20px;font-size:13px;margin-bottom:32px">
+    <span>&#128293;</span>
+    Fin dans : <strong id="promoTimer" style="font-variant-numeric:tabular-nums">--:--:--</strong>
+    <span style="opacity:.6">&middot; Code <strong style="color:var(--gold-lt)">CHICSHOP15</strong> pour -15% supp.</span>
+  </div>
+
+  <div class="products-grid">
+    {% for product in products %}
+    {% include 'shop/partials/product_card.html' with product=product %}
+    {% empty %}
+    <div class="empty-state">
+      <div class="empty-icon">&#127800;</div>
+      <p style="color:var(--muted)">Aucune promotion en ce moment.</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<script>
+(function(){
+  function tick(){
+    var end=new Date(); end.setHours(23,59,59,0);
+    var d=Math.max(0,end-new Date());
+    var h=String(Math.floor(d/3600000)).padStart(2,'0');
+    var m=String(Math.floor(d%3600000/60000)).padStart(2,'0');
+    var s=String(Math.floor(d%60000/1000)).padStart(2,'0');
+    var el=document.getElementById('promoTimer');
+    if(el) el.textContent=h+':'+m+':'+s;
+  }
+  setInterval(tick,1000); tick();
+})();
+</script>
+{% endblock %}

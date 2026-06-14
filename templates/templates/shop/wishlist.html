@@ -1,0 +1,29 @@
+{% extends 'shop/base.html' %}
+{% load humanize %}
+
+{% block title %}Mes favoris — ChicShop{% endblock %}
+
+{% block content %}
+<div class="section" style="max-width:1100px;margin:0 auto">
+  <div class="eyebrow">Collection personnelle</div>
+  <h1 style="font-family:'Cormorant Garamond',serif;font-size:clamp(36px,5vw,56px);color:var(--emerald);margin:8px 0 32px">
+    Mes <em>favoris</em>
+  </h1>
+
+  {% if wishlist %}
+  <div class="products-grid">
+    {% for product in wishlist %}
+    {% include 'shop/partials/product_card.html' with product=product %}
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">&#128149;</div>
+    <p style="color:var(--muted)">Vous n'avez pas encore de favoris.</p>
+    <a href="{% url 'shop:catalog' %}" class="btn-emerald" style="margin-top:20px;display:inline-flex">
+      Découvrir nos tapis
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
