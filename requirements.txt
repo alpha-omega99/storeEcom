@@ -36,7 +36,7 @@ redis==7.4.0
 django-redis==6.0.0
 
 # Images & Fichiers
-Pillow==12.2.0
+Pillow==13.0.0
 django-storages==1.14.6
 
 # Utilitaires
